@@ -90,6 +90,12 @@ namespace Modelo
         public required string observaciones { get; set; }
         public required List<TratamientoModel> tratamientos { get; set; }
     }
+    public class ObtenerTratamientoConsultaPacienteModel
+    {
+        public required string id_agendamiento { get; set; }
+        public string? id_paciente { get; set; }
+        public string? id_profesional { get; set; }
+    }
     public class ObtenerImagenesExamenesConsultaModel
     {
         public required string id_agendamiento { get; set; }

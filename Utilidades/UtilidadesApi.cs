@@ -1,6 +1,10 @@
 ﻿using ExcelDataReader;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using Modelo;
+using QuestPDF.Fluent;
+using QuestPDF.Helpers;
+using QuestPDF.Infrastructure;
 using System.Data;
 using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
@@ -258,6 +262,57 @@ namespace Utilidades
         public string getRutWithoutDv(string rut)
         {
             return rut.Replace(".", "").Replace("-", "").Substring(0, rut.Length - 1);
+        }
+        public byte[] GeneratePdf(ProfesionalModel profesional, PacienteModel paciente, GuardarConsultaMedicaModel consultaMedica)
+        {
+            QuestPDF.Settings.License = LicenseType.Community;
+            var document = Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Size(PageSizes.A4);
+                    page.Margin(2, Unit.Centimetre);
+                    page.PageColor(Colors.White);
+                    page.DefaultTextStyle(x => x.FontSize(20));
+
+                    page.Header()
+                        .Text("Consulta médica")
+                        .SemiBold().FontSize(36).FontColor(Colors.Blue.Medium);
+
+                    page.Content()
+                        .PaddingVertical(1, Unit.Centimetre)
+                          .Column(x =>
+                          {
+                              x.Item().Text($"Paciente: {paciente?.nombres ?? ""} {paciente?.apellido_paterno ?? ""} {paciente?.apellido_materno ?? ""}");
+                              x.Item().Text($"Fecha de atención: {DateTime.Now.ToString("dd/MM/yyyy")}");
+                              x.Item().Text($"Doctor: {profesional?.nombres ?? ""} {profesional?.apellido_paterno ?? ""} {profesional?.apellido_materno ?? ""}");
+                              x.Item().Text($"Motivo consulta: {consultaMedica?.motivo_consulta ?? ""}");
+                              x.Item().Text($"Observaciones: {consultaMedica?.observaciones ?? ""}");
+                              x.Item().PaddingVertical(10).Text("Tratamientos:");
+
+                              // Recorrer medicamentos
+                              foreach (var tratamiento in consultaMedica.tratamientos)
+                              {
+                                  x.Item().Text($"• {tratamiento?.nombre_tratamiento ?? ""}").FontSize(12);
+                                  x.Item().Text($"• {tratamiento?.descripcion ?? ""}").FontSize(12);
+                                  x.Item().Text($"• {tratamiento?.valor?.ToString() ?? ""}").FontSize(12);
+                              }
+                          });
+
+                    page.Footer()
+            .AlignCenter()
+             .Text(x =>
+             {
+                 x.Span("Página ");
+                 x.CurrentPageNumber();
+                 x.Span(" de ");
+                 x.TotalPages();
+             });
+                });
+            });
+
+            // Devuelve el PDF como arreglo de bytes
+            return document.GeneratePdf();
         }
     }
 }

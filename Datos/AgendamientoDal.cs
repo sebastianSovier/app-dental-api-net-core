@@ -178,6 +178,51 @@ namespace Datos
 
 
         }
+        public async Task<List<ObtenerTratamientoConsultaPaciente>> ObtenerTratamientoConsultaPaciente(ObtenerTratamientoConsultaPacienteModel request)
+        {
+            using MySqlConnection conexion = await mysql!.getConexion("bd1");
+            try
+            {
+                List<ObtenerTratamientoConsultaPaciente> listTratamientos = new List<ObtenerTratamientoConsultaPaciente>();
+                MySqlCommand cmd = new MySqlCommand();
+                cmd.Connection = conexion;
+                cmd.CommandText = $"select c.motivo_consulta, c.observaciones, p.total, t.nombre, t.descripcion, t.valor_unitario from consulta_medica c join presupuesto_consulta p  on c.id_consulta_medica = p.id_consulta_medica join tratamiento t  on t.id_presupuesto_consulta = p.id_presupuesto_consulta  where c.id_paciente  = ?id_paciente and c.id_profesional = ?id_profesional and c.id_agendamiento = ?id_agendamiento order by t.id_tratamiento;";
+                cmd.Parameters.Add("?id_paciente", MySqlDbType.VarChar).Value = request.id_paciente;
+                cmd.Parameters.Add("?id_profesional", MySqlDbType.VarChar).Value = request.id_profesional;
+                cmd.Parameters.Add("?id_agendamiento", MySqlDbType.VarChar).Value = request.id_agendamiento;
+
+                using var reader = await cmd.ExecuteReaderAsync();
+
+                while (await reader.ReadAsync())
+                {
+                    ObtenerTratamientoConsultaPaciente tratamiento = new ObtenerTratamientoConsultaPaciente();
+                    tratamiento.nombre = reader["nombre"].ToString();
+                    tratamiento.observaciones = reader["observaciones"].ToString();
+                    tratamiento.descripcion = reader["descripcion"].ToString();
+                    tratamiento.valor_unitario = reader["valor_unitario"].ToString();
+                    tratamiento.total = reader["total"].ToString();
+                    tratamiento.motivo_consulta = reader["motivo_consulta"].ToString();
+
+
+
+                    listTratamientos.Add(tratamiento);
+
+                }
+                return listTratamientos;
+            }
+            catch (Exception ex)
+            {
+
+                utils.createlogFile(ex.Message); throw;
+            }
+            finally
+            {
+                await conexion.CloseAsync();
+            }
+
+
+        }
+
         public async Task<bool> EliminarAgendamientoPaciente(string agendamiento_id, string paciente_id)
         {
             using MySqlConnection conexion = await mysql!.getConexion("bd1");

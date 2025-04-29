@@ -67,6 +67,15 @@
         public string? estado { get; set; }
 
     }
+    public class ObtenerTratamientoConsultaPaciente
+    {
+        public string? motivo_consulta { get; set; }
+        public string? observaciones { get; set; }
+        public string? nombre { get; set; }
+        public string? descripcion { get; set; }
+        public string? valor_unitario { get; set; }
+        public string? total { get; set; }
+    }
     public class EliminarAgendamientoRequestModel
     {
         public string id_agendamiento { get; set; }

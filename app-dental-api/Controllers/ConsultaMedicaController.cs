@@ -78,7 +78,54 @@ namespace app_dental_api.Controllers
                 return StatusCode(500, response);
             }
         }
+        /// <summary>
+        /// Login.
+        /// </summary>
+        /// <param name="request">LoginRequest.</param>
+        /// <returns>A <see cref="Task{TResult}"/> representing the result of the asynchronous operation.</returns>
+        [HttpPost]
+        [ActionName("obtenerTratamientoConsultaMedica")]
+        [ProducesResponseType<List<ObtenerTratamientoConsultaPaciente>>(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> ObtenerTratamientoConsultaMedica(
+            [FromBody] ObtenerTratamientoConsultaPacienteModel request)
+        {
+            var response = new Dictionary<string, string>();
+            var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var perfil = User.FindFirst(ClaimTypes.Role)?.Value;
+            LoginBo loginBo = new(_config);
+            if (username == null)
+            {
+                response.Add("Error", "Hubo un problema al validar paciente.");
+                return StatusCode(403, response);
+            }
+            if (perfil.Equals("Paciente"))
+            {
+                PacienteModel paciente = await loginBo.ObtenerPaciente(username);
+                if (paciente == null)
+                {
+                    response.Add("Error", "Hubo un problema al validar profesional.");
+                    return StatusCode(403, response);
+                }
+                request.id_paciente = paciente.id_paciente.ToString();
 
+            }
+
+            AgendamientoBo AgendamientoBo = new AgendamientoBo(_config);
+
+            try
+            {
+                return Ok(await AgendamientoBo.ObtenerTratamientoConsultaPaciente(request));
+            }
+            catch (Exception ex)
+            {
+                utils.createlogFile(ex.Message);
+                response.Add("Error", "Hubo un problema al validar paciente.");
+                return StatusCode(500, response);
+            }
+        }
     }
 
 }

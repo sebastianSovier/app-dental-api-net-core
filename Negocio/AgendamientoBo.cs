@@ -150,6 +150,22 @@ namespace Negocio
             return listaAgendamientos;
 
         }
+        public async Task<List<ObtenerTratamientoConsultaPaciente>?> ObtenerTratamientoConsultaPaciente(ObtenerTratamientoConsultaPacienteModel request)
+        {
+            request = utils.CleanObject(request);
+            AgendamientoDal agendamientoDal = new AgendamientoDal(_config);
+            LoginBo loginBo = new LoginBo(_config);
+
+            CrearEstadoAgendamientoModel estadoAgendamientoRequest = new CrearEstadoAgendamientoModel();
+            estadoAgendamientoRequest.id_agendamiento = request.id_agendamiento.ToString();
+
+            HorasAgendadasDoctorModel agendamiento = await agendamientoDal.obtenerAgendamientoPorId(estadoAgendamientoRequest.id_agendamiento.ToString());
+            request.id_agendamiento = agendamiento.id_agendamiento;
+            request.id_profesional = agendamiento.id_profesional;
+            List<ObtenerTratamientoConsultaPaciente> listTratamientos = await agendamientoDal.ObtenerTratamientoConsultaPaciente(request);
+            return listTratamientos;
+
+        }
         public async Task<bool> CrearAgendamiento(CrearAgendamientoModel agendamientoRequest, string correo)
         {
             AgendamientoDal agendamientoDal = new AgendamientoDal(_config);
@@ -254,10 +270,11 @@ namespace Negocio
 
         }
 
-        public async Task<bool> CrearConsultaMedica(GuardarConsultaMedicaModel consultaMedicaRequest)
+        public async Task<bool> CrearConsultaMedica(GuardarConsultaMedicaModel consultaMedicaRequest, string rut_profesional)
         {
             AgendamientoDal agendamientoDal = new AgendamientoDal(_config);
             LoginBo loginBo = new LoginBo(_config);
+            EmailService emailService = new EmailService(_config);
 
             HorasAgendadasDoctorModel agendamiento = await agendamientoDal.obtenerAgendamientoPorId(consultaMedicaRequest.id_agendamiento);
             if (agendamiento == null)
@@ -268,7 +285,8 @@ namespace Negocio
             consultaMedicaRequest.id_profesional = agendamiento.id_profesional;
             consultaMedicaRequest.id_paciente = agendamiento.id_paciente;
             long idConsultaMedica = await agendamientoDal.GuardarConsultaMedica(consultaMedicaRequest);
-
+            PacienteModel paciente = await loginBo.ObtenerPacienteById(agendamiento.id_paciente);
+            ProfesionalModel profesional = await loginBo.ObtenerProfesional(rut_profesional);
             long sumaTotalTratamiento = 0;
             foreach (var item in consultaMedicaRequest.tratamientos)
             {
@@ -285,6 +303,16 @@ namespace Negocio
                 await agendamientoDal.GuardarTratamiento(item);
             }
             await agendamientoDal.ConsultaRealizada(agendamiento.id_agendamiento);
+            var pdfBytes = utils.GeneratePdf(profesional, paciente, consultaMedicaRequest);
+
+            await File.WriteAllBytesAsync("orden_medica.pdf", pdfBytes);
+            using var pdf = new MemoryStream(pdfBytes);
+            var attachments = new List<(Stream, string, string)>
+            {
+             (pdf, "documento.pdf", "application/pdf")
+            };
+            await emailService.SendEmailAsync(paciente.correo, "Se envia Orden medica ", $"<b>Sr {paciente.nombres} {paciente.apellido_paterno} {paciente.apellido_materno}, se adjunta orden medica , según consulta del dia {DateTime.Now.ToString("dd/MM/yyyy")}</ b >", attachments);
+
             return true;
 
 

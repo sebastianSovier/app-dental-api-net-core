@@ -17,18 +17,16 @@ namespace app_dental_api.Controllers
     public class UtilitarioController : ControllerBase
     {
         private readonly IAntiforgery antiforgery;
-        private readonly EmailService _emailService;
         private readonly IConfiguration _config;
         private readonly UtilidadesApiss utils = new UtilidadesApiss();
         /// <summary>
         /// Initializes a new instance of the <see cref="UtilitarioController"/> class.
         /// </summary>
         /// <param name="antiforgery">antiforgery instance.</param>
-        public UtilitarioController(IAntiforgery antiforgery, IConfiguration config, EmailService emailService)
+        public UtilitarioController(IAntiforgery antiforgery, IConfiguration config)
         {
             this.antiforgery = antiforgery;
             _config = config;
-            _emailService = emailService;
         }
 
         /// <summary>

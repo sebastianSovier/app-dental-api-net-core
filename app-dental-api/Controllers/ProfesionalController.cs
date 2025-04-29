@@ -306,21 +306,23 @@ namespace app_dental_api.Controllers
                     response.Add("Error", "Hubo un problema al validar profesional.");
                     return StatusCode(403, response);
                 }
+                AgendamientoBo AgendamientoBo = new AgendamientoBo(_config);
+
+                try
+                {
+                    return Ok(await AgendamientoBo.CrearConsultaMedica(request, profesional.rut + profesional.dv));
+                }
+                catch (Exception ex)
+                {
+                    utils.createlogFile(ex.Message);
+                    response.Add("Error", "Hubo un problema al validar paciente.");
+                    return StatusCode(500, response);
+                }
 
             }
+            return StatusCode(403, response);
 
-            AgendamientoBo AgendamientoBo = new AgendamientoBo(_config);
 
-            try
-            {
-                return Ok(await AgendamientoBo.CrearConsultaMedica(request));
-            }
-            catch (Exception ex)
-            {
-                utils.createlogFile(ex.Message);
-                response.Add("Error", "Hubo un problema al validar paciente.");
-                return StatusCode(500, response);
-            }
         }
         /// <summary>
         /// Login.
