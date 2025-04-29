@@ -11,6 +11,18 @@
         public string? fecha { get; set; }
         public string? hora { get; set; }
     }
+    public class ModificarAgendamientoModel
+    {
+        public string? correo { get; set; }
+        public string? id_profesional { get; set; }
+        public string? id_agendamiento { get; set; }
+        public string? id_paciente { get; set; }
+        public string? nombres { get; set; }
+        public string? apellido_paterno { get; set; }
+        public string? apellido_materno { get; set; }
+        public string? fecha { get; set; }
+        public string? hora { get; set; }
+    }
     public class CrearPuntuacionAtencionDoctorModel
     {
         public string id_agendamiento { get; set; }

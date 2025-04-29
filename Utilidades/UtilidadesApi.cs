@@ -186,7 +186,7 @@ namespace Utilidades
                         {
                         "CREATE", "ALTER", "DROP", "TRUNCATE", "INSERT", "UPDATE", "DELETE", "SELECT", "&",
                         "FROM", "WHERE", "REPLACE", "FUNCTION", "TABLE", "COLUMN", "ROW", "DATABASE",
-                        "%", "!", "$", "(", ")", "'", ":", "[", "]", "{", "}", "+", "*", "=", "#",
+                        "%", "!", "$", "(", ")", "'", "[", "]", "{", "}", "+", "*", "=", "#",
                         "%", "!", "$", "(", ")", "'",
                         "[", "]", "+", "*", "=", "#",
                         "DOCTYPE", "applet", "basefont", "body", "button", "frame", "frameset", "head",

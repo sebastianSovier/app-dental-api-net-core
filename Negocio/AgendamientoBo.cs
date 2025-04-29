@@ -189,6 +189,26 @@ namespace Negocio
 
 
         }
+        public async Task<bool> ModificarAgendamiento(ModificarAgendamientoModel agendamientoRequest, string correo)
+        {
+            AgendamientoDal agendamientoDal = new AgendamientoDal(_config);
+            UsuarioDal usuarioDal = new UsuarioDal(_config);
+            LoginBo loginBo = new LoginBo(_config);
+            EmailService emailService = new EmailService(_config);
+            HorasAgendadasDoctorModel agendamiento = await agendamientoDal.obtenerAgendamientoPorId(agendamientoRequest.id_agendamiento.ToString());
+            ProfesionalModel profesional = await usuarioDal.ObtenerDoctorById(agendamiento.id_profesional);
+            agendamientoRequest.id_profesional = profesional.id_profesional.ToString();
+            long idAgendamiento = await agendamientoDal.ModificarAgendamiento(agendamientoRequest);
+            if (idAgendamiento == 0)
+            {
+                return false;
+            }
+
+            await emailService.SendEmailAsync(correo, "cita modificada con éxito", $"<b>cita agendada con el Doctor {profesional.nombres} {profesional.apellido_paterno} {profesional.apellido_materno} , a las {agendamiento.hora} , el dia {agendamiento.fecha}</ b >");
+            return true;
+
+
+        }
         public async Task<bool> CrearPuntuacionAtencionDoctor(CrearPuntuacionAtencionDoctorModel crearPuntuacionRequest)
         {
             AgendamientoDal agendamientoDal = new AgendamientoDal(_config);

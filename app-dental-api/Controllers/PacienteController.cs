@@ -116,7 +116,44 @@ namespace app_dental_api.Controllers
                 return StatusCode(500, response);
             }
         }
+        [HttpPost]
+        [ActionName("modificarAgendamientoPaciente")]
+        [ProducesResponseType<OkResponse>(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> modificarAgendamientoPaciente(ModificarAgendamientoModel request)
+        {
+            LoginBo Login = new LoginBo(_config);
+            AgendamientoBo AgendamientoBo = new AgendamientoBo(_config);
+            var response = new Dictionary<string, string>();
+            PacienteModel usuario = new PacienteModel();
 
+            try
+            {
+                var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                usuario = await Login.ObtenerPaciente(username!);
+                request.id_paciente = usuario.id_paciente.ToString();
+                await AgendamientoBo.ModificarAgendamiento(request, usuario.correo);
+
+
+
+                return Ok(new OkResponse
+                {
+                    auth = true
+
+                });
+
+
+            }
+            catch (Exception ex)
+            {
+                utils.createlogFile(ex.Message);
+                response.Add("Error", "Hubo un problema al crear paciente.");
+                return StatusCode(500, response);
+            }
+        }
         [HttpPost]
         [ActionName("obtenerHorasAgendadasPorPaciente")]
         [ProducesResponseType<ObtenerAgendamientoPacienteModel>(StatusCodes.Status200OK)]

@@ -374,6 +374,35 @@ namespace Datos
                 await conexion.CloseAsync();
             }
         }
+        public async Task<long> ModificarAgendamiento(ModificarAgendamientoModel agendamientoRequest)
+        {
+
+            using MySqlConnection conexion = await mysql!.getConexion("bd1");
+            try
+            {
+                MySqlCommand cmd = new MySqlCommand();
+                cmd.Connection = conexion;
+                cmd.CommandText = "UPDATE `sistemaodontologico`.`agendamiento` SET fecha = ?fecha , hora = ?hora , id_profesional = ?id_profesional where id_agendamiento =  ?id_agendamiento and id_paciente = ?id_paciente;";
+
+                cmd.Parameters.Add("?id_agendamiento", MySqlDbType.VarChar).Value = agendamientoRequest.id_agendamiento;
+                cmd.Parameters.Add("?id_paciente", MySqlDbType.VarChar).Value = agendamientoRequest.id_paciente;
+                cmd.Parameters.Add("?id_profesional", MySqlDbType.VarChar).Value = agendamientoRequest.id_profesional;
+                cmd.Parameters.Add("?fecha", MySqlDbType.VarChar).Value = agendamientoRequest.fecha;
+                cmd.Parameters.Add("?hora", MySqlDbType.VarChar).Value = agendamientoRequest.hora;
+                await cmd.ExecuteNonQueryAsync();
+                long idGenerado = cmd.LastInsertedId;
+                return idGenerado;
+            }
+            catch (Exception ex)
+            {
+
+                utils.createlogFile(ex.Message); throw;
+            }
+            finally
+            {
+                await conexion.CloseAsync();
+            }
+        }
         public async Task<bool> CrearPuntuacionPorAtencionDoctor(CrearPuntuacionAtencionDoctorModel crearPuntuacionRequest)
         {
 
