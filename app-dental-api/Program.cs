@@ -62,6 +62,11 @@ builder.Services.AddAntiforgery(options =>
 
 builder.WebHost.ConfigureKestrel(serverOptions =>
 {
+    /*serverOptions.ConfigureHttpsDefaults(httpsOptions =>
+    {
+        httpsOptions.ServerCertificate = new X509Certificate2(builder.Configuration["PfxRuta"], builder.Configuration["PasswordCert"]);
+    });
+    */
     serverOptions.AddServerHeader = false;
 });
 builder.Services
@@ -75,9 +80,9 @@ builder.Services
                         ValidateAudience = false,
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
-                        ValidIssuer = "http://localhost:4200",
-                        ValidAudience = "http://localhost:4200",
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("a-very-long-radonmly-generated-secret-key-that-cannot-be-guessed")),
+                        ValidIssuer = builder.Configuration["JwtIssuer"],
+                        ValidAudience = builder.Configuration["JwtIssuer"],
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtKey"])),
                     };
                 });
 

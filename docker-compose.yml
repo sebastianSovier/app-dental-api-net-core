@@ -1,0 +1,74 @@
+version: '3.8'
+
+networks:
+  mi_red:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.19.0.0/24
+
+services:
+  mysql:
+    image: mysql:lts
+    networks:
+      mi_red:
+        ipv4_address: 172.19.0.3
+    environment:
+      MYSQL_ROOT_PASSWORD: sovier
+      MYSQL_DATABASE: sistemaodontologico
+      MYSQL_USER: secros
+      MYSQL_PASSWORD: sovier
+      TZ: 'America/Santiago'
+    ports:
+      - "3306:3306"
+    restart: always
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  app-dental:
+    networks:
+      mi_red:
+        ipv4_address: 172.19.0.2
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - mysql
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      DOTNET_USE_POLLING_FILE_WATCHER: "1"
+      NUGET_PACKAGES: "/.nuget/fallbackpackages"
+      NUGET_FALLBACK_PACKAGES: "/.nuget/fallbackpackages"
+      ASPNETCORE_LOGGING__CONSOLE__DISABLECOLORS: "true"
+      ASPNETCORE_URLS: "http://+:80;https://+:443"
+      DOTNET_RUNNING_IN_CONTAINER: "true"
+      DOTNET_VERSION: "8.0.4"
+      ASPNET_VERSION: "8.0.4"
+      TZ: America/Santiago
+    command: ["dotnet", "watch","run", -v, "--project" , "app-dental-api/app-dental-api.csproj", "--urls", "https://*:443;http://*:80"]
+    # Puedes cambiar este comando por uno adecuado para producción si no es necesario 'dotnet watch'
+    volumes:
+      - .:/src
+      - /src/app-dental-api/obj
+      - /src/app-dental-api/bin
+      - /src/Datos/obj
+      - /src/Datos/bin
+      - /src/Negocio/obj
+      - /src/Negocio/bin
+      - /src/Utilidades/obj
+      - /src/Utilidades/bin
+      - /etc/localtime:/etc/localtime:ro
+      - ./https:/https:ro
+      - C:\Users\Gamer\vsdbg\vs2017u5:/remote_debugger:rw
+      - C:\Users\Gamer\AppData\Roaming\Microsoft\UserSecrets:/root/.microsoft/usersecrets:ro
+      - C:\Users\Gamer\AppData\Roaming\ASP.NET\Https:/root/.aspnet/https:ro
+      - C:\Users\Gamer\AppData\Roaming\ASP.NET\Https:/home/app/.aspnet/https:ro
+      - C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Sdks\Microsoft.Docker.Sdk\tools\TokenService.Proxy\linux-x64\net6.0:/TokenService.Proxy:ro
+    restart: always
+
+volumes:
+  mysql_data:

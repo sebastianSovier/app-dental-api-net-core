@@ -374,7 +374,7 @@ namespace Datos
                 await conexion.CloseAsync();
             }
         }
-        public async Task<long> ModificarAgendamiento(ModificarAgendamientoModel agendamientoRequest)
+        public async Task<bool> ModificarAgendamiento(ModificarAgendamientoModel agendamientoRequest)
         {
 
             using MySqlConnection conexion = await mysql!.getConexion("bd1");
@@ -390,8 +390,7 @@ namespace Datos
                 cmd.Parameters.Add("?fecha", MySqlDbType.VarChar).Value = agendamientoRequest.fecha;
                 cmd.Parameters.Add("?hora", MySqlDbType.VarChar).Value = agendamientoRequest.hora;
                 await cmd.ExecuteNonQueryAsync();
-                long idGenerado = cmd.LastInsertedId;
-                return idGenerado;
+                return true;
             }
             catch (Exception ex)
             {
