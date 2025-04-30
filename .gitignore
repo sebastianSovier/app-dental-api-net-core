@@ -16,6 +16,7 @@
 # Mono auto generated files
 mono_crash.*
 
+app-dental-api/appsettings.json
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
