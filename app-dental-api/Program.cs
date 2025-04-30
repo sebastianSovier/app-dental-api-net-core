@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.IdentityModel.Tokens;
 using System.Globalization;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -16,7 +17,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.SetupCorsService(corsPolicy);
+builder.Services.SetupCorsService(builder, corsPolicy);
 
 builder.Host.ConfigureSerilog();
 builder.Services.AddDistributedMemoryCache();
@@ -62,11 +63,10 @@ builder.Services.AddAntiforgery(options =>
 
 builder.WebHost.ConfigureKestrel(serverOptions =>
 {
-    /*serverOptions.ConfigureHttpsDefaults(httpsOptions =>
+    serverOptions.ConfigureHttpsDefaults(httpsOptions =>
     {
         httpsOptions.ServerCertificate = new X509Certificate2(builder.Configuration["PfxRuta"], builder.Configuration["PasswordCert"]);
     });
-    */
     serverOptions.AddServerHeader = false;
 });
 builder.Services
@@ -107,7 +107,8 @@ app.UseRequestLocalization(
         DefaultRequestCulture = new RequestCulture(culture),
         SupportedCultures = supportedCultures,
         SupportedUICultures = supportedCultures,
-    }); app.UseCors(corsPolicy);
+    });
+app.UseCors(corsPolicy);
 
 app.UseExceptionHandler(new ExceptionHandlerOptions
 {
@@ -143,7 +144,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-//app.UseHttpsRedirection();
+app.UseHttpsRedirection();
 
 
 app.MapControllers();

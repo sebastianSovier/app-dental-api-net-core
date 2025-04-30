@@ -34,8 +34,8 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "80:80"
       - "443:443"
+      - "81:80"
     depends_on:
       - mysql
     environment:
@@ -44,12 +44,12 @@ services:
       NUGET_PACKAGES: "/.nuget/fallbackpackages"
       NUGET_FALLBACK_PACKAGES: "/.nuget/fallbackpackages"
       ASPNETCORE_LOGGING__CONSOLE__DISABLECOLORS: "true"
-      ASPNETCORE_URLS: "http://+:80;https://+:443"
+      ASPNETCORE_URLS: "https://+:443"
       DOTNET_RUNNING_IN_CONTAINER: "true"
       DOTNET_VERSION: "8.0.4"
       ASPNET_VERSION: "8.0.4"
       TZ: America/Santiago
-    command: ["dotnet", "watch","run", -v, "--project" , "app-dental-api/app-dental-api.csproj", "--urls", "https://*:443;http://*:80"]
+    command: ["dotnet", "watch","run", -v, "--project" , "app-dental-api/app-dental-api.csproj", "--urls", "https://*:443;http://*:81"]
     # Puedes cambiar este comando por uno adecuado para producción si no es necesario 'dotnet watch'
     volumes:
       - .:/src

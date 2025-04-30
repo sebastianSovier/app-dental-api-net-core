@@ -25,10 +25,11 @@ internal static class ConfigureCors
     /// <returns>Service collection instance.</returns>
     public static IServiceCollection SetupCorsService(
         this IServiceCollection services,
+        WebApplicationBuilder builder,
         string policyName)
     {
 
-
+        var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>();
         services
             .AddCors(options =>
             {
@@ -36,7 +37,7 @@ internal static class ConfigureCors
                     policyName, policy =>
                     {
                         policy
-                            .WithOrigins("http://localhost:4200")
+                            .WithOrigins(allowedOrigins)
                             .SetPreflightMaxAge(TimeSpan.FromSeconds(2520))
                             .WithMethods("POST").WithHeaders("Authorization", "Content-Type", "Accept", "Accept-Encoding", "Accept-Language", "Cookie", "X-Q").AllowCredentials();
                     });

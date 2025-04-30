@@ -328,6 +328,10 @@ namespace Negocio
             {
              (pdf, "documento.pdf", "application/pdf")
             };
+            if (File.Exists("orden_medica.pdf"))
+            {
+                File.Delete("orden_medica.pdf");
+            }
             await emailService.SendEmailAsync(paciente.correo, "Se envia Orden medica ", $"<b>Sr {paciente.nombres} {paciente.apellido_paterno} {paciente.apellido_materno}, se adjunta orden medica , según consulta del dia {DateTime.Now.ToString("dd/MM/yyyy")}</ b >", attachments);
 
             return true;
