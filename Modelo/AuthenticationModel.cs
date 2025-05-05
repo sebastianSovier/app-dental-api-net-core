@@ -40,6 +40,8 @@ namespace Modelo
             public string? correo { get; set; }
             public bool? auth { get; set; }
             public Int64? id { get; set; }
+            public bool login { get; set; }
+            public string? message { get; set; }
         }
         public class OkResponse
         {

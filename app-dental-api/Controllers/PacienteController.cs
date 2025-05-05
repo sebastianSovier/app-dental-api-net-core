@@ -43,9 +43,21 @@ namespace app_dental_api.Controllers
 
             try
             {
-                var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                usuario = await Login.ObtenerPaciente(username!);
-                if (usuario.nombres != null)
+                var userSesion = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var perfil = User.FindFirst(ClaimTypes.Role)?.Value;
+                if (userSesion == null)
+                {
+                    response.Add("Error", "Hubo un problema al validar paciente.");
+                    return StatusCode(403, response);
+                }
+                usuario = await Login.ObtenerPaciente(userSesion!);
+                if (usuario.rut == null)
+                {
+
+                    response.Add("Error", "Invalid username");
+                    return StatusCode(403, response);
+                }
+                else
                 {
                     foreach (var item in request)
                     {
@@ -60,14 +72,7 @@ namespace app_dental_api.Controllers
                     });
 
                 }
-                else
-                {
-                    return Ok(new OkResponse
-                    {
-                        auth = false
 
-                    });
-                }
 
             }
             catch (Exception ex)
@@ -94,8 +99,19 @@ namespace app_dental_api.Controllers
 
             try
             {
-                var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                usuario = await Login.ObtenerPaciente(username!);
+                var userSesion = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var perfil = User.FindFirst(ClaimTypes.Role)?.Value;
+                if (userSesion == null)
+                {
+                    response.Add("Error", "Hubo un problema al validar paciente.");
+                    return StatusCode(403, response);
+                }
+                usuario = await Login.ObtenerPaciente(userSesion!);
+                if (usuario.rut == null)
+                {
+                    response.Add("Error", "Invalid username");
+                    return StatusCode(403, response);
+                }
                 request.id_paciente = usuario.id_paciente.ToString();
                 await AgendamientoBo.CrearAgendamiento(request, usuario.correo);
 
@@ -132,8 +148,20 @@ namespace app_dental_api.Controllers
 
             try
             {
+                var userSesion = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var perfil = User.FindFirst(ClaimTypes.Role)?.Value;
+                if (userSesion == null)
+                {
+                    response.Add("Error", "Hubo un problema al validar paciente.");
+                    return StatusCode(403, response);
+                }
                 var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 usuario = await Login.ObtenerPaciente(username!);
+                if (usuario.rut == null)
+                {
+                    response.Add("Error", "Invalid username");
+                    return StatusCode(403, response);
+                }
                 request.id_paciente = usuario.id_paciente.ToString();
                 await AgendamientoBo.ModificarAgendamiento(request, usuario.correo);
 
@@ -170,10 +198,17 @@ namespace app_dental_api.Controllers
 
             try
             {
+                var userSesion = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var perfil = User.FindFirst(ClaimTypes.Role)?.Value;
+                if (userSesion == null)
+                {
+                    response.Add("Error", "Hubo un problema al validar paciente.");
+                    return StatusCode(403, response);
+                }
                 ObtenerAgendamientoPorPacienteModel request = new();
                 var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 usuario = await Login.ObtenerPaciente(username!);
-                if (usuario == null)
+                if (usuario.rut == null)
                 {
                     response.Add("Error", "Invalid username");
                     return StatusCode(403, response);
@@ -205,10 +240,17 @@ namespace app_dental_api.Controllers
 
             try
             {
+                var userSesion = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var perfil = User.FindFirst(ClaimTypes.Role)?.Value;
+                if (userSesion == null)
+                {
+                    response.Add("Error", "Hubo un problema al validar paciente.");
+                    return StatusCode(403, response);
+                }
                 ObtenerAgendamientoPorPacienteModel request = new();
                 var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 usuario = await Login.ObtenerPaciente(username!);
-                if (usuario == null)
+                if (usuario.rut == null)
                 {
                     response.Add("Error", "Invalid username");
                     return StatusCode(403, response);
@@ -249,7 +291,7 @@ namespace app_dental_api.Controllers
             }
 
             PacienteModel paciente = await loginBo.ObtenerPaciente(username);
-            if (paciente == null)
+            if (paciente.rut == null)
             {
                 response.Add("Error", "Hubo un problema al validar paciente.");
                 return StatusCode(403, response);
@@ -288,7 +330,7 @@ namespace app_dental_api.Controllers
                 ObtenerAgendamientoPorPacienteModel request = new();
                 var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 usuario = await Login.ObtenerPaciente(username!);
-                if (usuario == null)
+                if (usuario.rut == null)
                 {
                     response.Add("Error", "Invalid username");
                     return StatusCode(403, response);
@@ -323,7 +365,7 @@ namespace app_dental_api.Controllers
                 EliminarAgendamientoPacienteModel requestPaciente = new();
                 var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 usuario = await Login.ObtenerPaciente(username!);
-                if (usuario == null)
+                if (usuario.rut == null)
                 {
                     response.Add("Error", "Invalid username");
                     return StatusCode(403, response);

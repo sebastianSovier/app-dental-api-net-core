@@ -22,53 +22,78 @@ services:
       TZ: 'America/Santiago'
     ports:
       - "3306:3306"
-    restart: always
+    restart: on-failure
     volumes:
       - mysql_data:/var/lib/mysql
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "0.5"
+        reservations:
+          memory: 256M
+          cpus: "0.25"
 
   app-dental:
     networks:
       mi_red:
         ipv4_address: 172.19.0.2
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: secros18/app-dental-api-mysql:latest
     ports:
       - "443:443"
       - "81:80"
     depends_on:
       - mysql
     environment:
-      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_ENVIRONMENT: Production
       DOTNET_USE_POLLING_FILE_WATCHER: "1"
       NUGET_PACKAGES: "/.nuget/fallbackpackages"
       NUGET_FALLBACK_PACKAGES: "/.nuget/fallbackpackages"
       ASPNETCORE_LOGGING__CONSOLE__DISABLECOLORS: "true"
-      ASPNETCORE_URLS: "https://+:443"
+      ASPNETCORE_URLS: "http://+:81;https://+:443"
       DOTNET_RUNNING_IN_CONTAINER: "true"
       DOTNET_VERSION: "8.0.4"
       ASPNET_VERSION: "8.0.4"
+      ASPNETCORE_Kestrel__Endpoints__Https__Certificate__Path: /app/certs/fullchain.pem
+      ASPNETCORE_Kestrel__Endpoints__Https__Certificate__KeyPath: /app/certs/privkey.pem
+      ASPNETCORE_Kestrel__Endpoints__Https__Url: "https://+:443"
       TZ: America/Santiago
-    command: ["dotnet", "watch","run", -v, "--project" , "app-dental-api/app-dental-api.csproj", "--urls", "https://*:443;http://*:81"]
-    # Puedes cambiar este comando por uno adecuado para producción si no es necesario 'dotnet watch'
     volumes:
-      - .:/src
-      - /src/app-dental-api/obj
-      - /src/app-dental-api/bin
-      - /src/Datos/obj
-      - /src/Datos/bin
-      - /src/Negocio/obj
-      - /src/Negocio/bin
-      - /src/Utilidades/obj
-      - /src/Utilidades/bin
       - /etc/localtime:/etc/localtime:ro
       - ./https:/https:ro
-      - C:\Users\Gamer\vsdbg\vs2017u5:/remote_debugger:rw
-      - C:\Users\Gamer\AppData\Roaming\Microsoft\UserSecrets:/root/.microsoft/usersecrets:ro
-      - C:\Users\Gamer\AppData\Roaming\ASP.NET\Https:/root/.aspnet/https:ro
-      - C:\Users\Gamer\AppData\Roaming\ASP.NET\Https:/home/app/.aspnet/https:ro
-      - C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Sdks\Microsoft.Docker.Sdk\tools\TokenService.Proxy\linux-x64\net6.0:/TokenService.Proxy:ro
-    restart: always
+      - /home/ubuntu/certs-api:/app/certs:ro
+    restart: on-failure
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "0.5"
+        reservations:
+          memory: 256M
+          cpus: "0.25"
+
+  web:
+    image: secros18/app-dental-web:latest
+    ports:
+      - "8080:80"
+      - "444:443"
+    networks:
+      mi_red:
+        ipv4_address: 172.19.0.5
+    environment:
+      - NODE_ENV=production
+      - CHOKIDAR_USEPOLLING=true
+    volumes:
+      - /home/ubuntu/certs:/etc/nginx/ssl:ro
+    restart: on-failure
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "0.5"
+        reservations:
+          memory: 256M
+          cpus: "0.25"
 
 volumes:
   mysql_data:

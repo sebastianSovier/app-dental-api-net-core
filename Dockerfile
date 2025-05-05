@@ -1,6 +1,7 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
+
 COPY ["app-dental-api/nuget.config", "./"]
 
 # Copiar los archivos de proyecto y restaurar dependencias de cada uno
@@ -20,9 +21,21 @@ RUN dotnet restore "Utilidades/Utilidades.csproj"
 # Copiar el resto de los archivos del proyecto
 COPY . .
 
+RUN dotnet publish "app-dental-api/app-dental-api.csproj" -c Release -o /app/publish
+
+# Imagen final para runtime
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
+
+RUN apt-get update && apt-get install -y openssl
+
+WORKDIR /app
+COPY --from=build /app/publish .
+
+COPY https/ /https/ 
+RUN chmod 644 /https/aspnetapp.pfx
 # Exponer los puertos después de la construcción
 EXPOSE 80
 EXPOSE 443
 
 # Comando de entrada para ejecutar la aplicación en modo watch
-CMD ["dotnet", "watch", "run", "--project", "app-dental-api/app-dental-api.csproj", "--urls", "https://*:443;http://*:80"]
+ENTRYPOINT ["dotnet", "app-dental-api.dll"]

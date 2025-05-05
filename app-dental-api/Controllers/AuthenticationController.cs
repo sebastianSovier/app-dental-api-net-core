@@ -29,6 +29,16 @@ namespace app_dental_api.Controllers
             _config = config;
         }
 
+        [HttpGet]
+        [AllowAnonymous]
+        [ActionName("health")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult Health()
+        {
+            return Ok();
+        }
         [HttpPost]
         [AllowAnonymous]
         [ActionName("logout")]
@@ -81,8 +91,9 @@ namespace app_dental_api.Controllers
                 return Ok(new LoginResponse()
                 {
                     access_Token = token,
-                    auth = true
-
+                    auth = true,
+                    id = Convert.ToInt64(usuario.id_perfil),
+                    login = true
                 });
             }
             catch (Exception ex)
@@ -116,13 +127,42 @@ namespace app_dental_api.Controllers
             {
 
                 usuario = await Login.ObtenerPaciente(request.rut);
+                password = await Password.ObtenerPasswordPaciente(usuario.id_paciente.ToString());
+                if (usuario.rut != null)
+                {
+                    if (password.contrasena != null)
+                    {
+                        return Ok(new LoginResponse()
+                        {
+                            access_Token = "",
+                            auth = false,
+                            id = 0,
+                            login = false,
+                            message = "Agende hora a traves de su portal privado."
+                        });
+
+                    }
+                    else
+                    {
+                        return Ok(new LoginResponse()
+                        {
+                            access_Token = "",
+                            auth = false,
+                            id = 0,
+                            login = false,
+                            message = "Cree contraseña para continuar."
+                        });
+
+                    }
+                }
 
                 string token = await Task.Run(() => utils.GenerateJwtToken(request.rut, "Paciente", _config));
                 return Ok(new LoginResponse()
                 {
                     access_Token = token,
-                    auth = true
-
+                    auth = true,
+                    id = 0,
+                    login = false
                 });
             }
             catch (Exception ex)
@@ -211,8 +251,8 @@ namespace app_dental_api.Controllers
                 {
                     access_Token = token,
                     auth = true,
-                    id = Convert.ToInt64(usuario.id_perfil)
-
+                    id = Convert.ToInt64(usuario.id_perfil),
+                    login = true
 
                 });
             }
@@ -367,7 +407,7 @@ namespace app_dental_api.Controllers
                         }
                     }
                 }
-                response.Add("Error", "Hubo un problema al obtener data.");
+                response.Add("Error", "Hubo un problema al validar usuario.");
                 return StatusCode(403, response);
 
             }

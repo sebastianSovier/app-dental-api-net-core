@@ -157,7 +157,7 @@ namespace app_dental_api.Controllers
             if (perfil.Equals("Profesional"))
             {
                 ProfesionalModel profesional = await loginBo.ObtenerProfesional(username);
-                if (profesional == null)
+                if (profesional.rut == null)
                 {
                     response.Add("Error", "Hubo un problema al validar profesional.");
                     return StatusCode(403, response);
@@ -206,7 +206,7 @@ namespace app_dental_api.Controllers
             if (perfil.Equals("Profesional"))
             {
                 ProfesionalModel profesional = await loginBo.ObtenerProfesional(username);
-                if (profesional == null)
+                if (profesional.rut == null)
                 {
                     response.Add("Error", "Hubo un problema al validar profesional.");
                     return StatusCode(403, response);
@@ -255,7 +255,7 @@ namespace app_dental_api.Controllers
             if (perfil.Equals("Profesional"))
             {
                 ProfesionalModel profesional = await loginBo.ObtenerProfesional(username);
-                if (profesional == null)
+                if (profesional.rut == null)
                 {
                     response.Add("Error", "Hubo un problema al validar profesional.");
                     return StatusCode(403, response);
@@ -301,7 +301,7 @@ namespace app_dental_api.Controllers
             if (perfil.Equals("Profesional"))
             {
                 ProfesionalModel profesional = await loginBo.ObtenerProfesional(username);
-                if (profesional == null)
+                if (profesional.rut == null)
                 {
                     response.Add("Error", "Hubo un problema al validar profesional.");
                     return StatusCode(403, response);
@@ -355,7 +355,7 @@ namespace app_dental_api.Controllers
             if (perfil.Equals("Profesional"))
             {
                 ProfesionalModel profesional = await loginBo.ObtenerProfesional(username);
-                if (profesional == null)
+                if (profesional.rut == null)
                 {
                     response.Add("Error", "Hubo un problema al validar profesional.");
                     return StatusCode(403, response);

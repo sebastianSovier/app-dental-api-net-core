@@ -63,7 +63,7 @@ namespace Negocio
                  return new
                  {
                      Profesional = p,
-                     Puntaje = puntaje
+                     Puntaje = puntaje,
                  };
              });
 
@@ -86,50 +86,68 @@ namespace Negocio
         }
         private int CalcularPuntajeRelevancia(ProfesionalesModel p, List<RespuestasInicialesModel> respuestas, ProfesionalesPuntuacionesModel puntuacion)
         {
+            if (puntuacion == null || respuestas == null) return 0;
+
             int score = 0;
 
             score += Convert.ToInt32(puntuacion.puntaje_general) * 2;
 
             // Pregunta 1 – Motivo principal de consulta
-            if (respuestas.Any(r => r.id_pregunta == 1 && r.respuesta == 1)) // Prevención
-                score += Convert.ToInt32(puntuacion.puntualidad) + Convert.ToInt32(puntuacion.claridad);
+            var pregunta1Map = new Dictionary<int, Func<ProfesionalesPuntuacionesModel, int>>
+    {
+        { 1, p => Convert.ToInt32(p.puntualidad) + Convert.ToInt32(p.claridad) },                  // Prevención
+        { 2, p => Convert.ToInt32(p.nivel_satisfaccion) + Convert.ToInt32(p.recomendacion) },      // Molestias
+        { 3, p => Convert.ToInt32(p.empatia) + Convert.ToInt32(p.claridad) },                      // Sensibilidad
+        { 4, p => Convert.ToInt32(p.cordialidad) + Convert.ToInt32(p.empatia) }                    // Estético
+    };
 
-            if (respuestas.Any(r => r.id_pregunta == 1 && r.respuesta == 2)) // Molestias
-                score += Convert.ToInt32(puntuacion.nivel_satisfaccion) + Convert.ToInt32(puntuacion.recomendacion);
+            AgregarPuntajePorPregunta(respuestas, 1, pregunta1Map, puntuacion, ref score);
 
-            if (respuestas.Any(r => r.id_pregunta == 1 && r.respuesta == 3)) // Sensibilidad
-                score += Convert.ToInt32(puntuacion.empatia) + Convert.ToInt32(puntuacion.claridad);
-
-            if (respuestas.Any(r => r.id_pregunta == 1 && r.respuesta == 4)) // Estético
-                score += Convert.ToInt32(puntuacion.cordialidad) + Convert.ToInt32(puntuacion.empatia);
-
-            // Pregunta 2 – ¿Experiencias dentales previas?
-            if (respuestas.Any(r => r.id_pregunta == 2 && r.respuesta == 1)) // Sí
+            // Pregunta 2 – Experiencias previas
+            if (TieneRespuesta(respuestas, 2, 1))
                 score += Convert.ToInt32(puntuacion.nivel_satisfaccion);
 
-            // Pregunta 3 – ¿Experiencias negativas?
-            if (respuestas.Any(r => r.id_pregunta == 3 && r.respuesta == 1)) // Sí
+            // Pregunta 3 – Experiencias negativas
+            if (TieneRespuesta(respuestas, 3, 1))
                 score += Convert.ToInt32(puntuacion.empatia) * 2;
 
             // Pregunta 4 – Preocupaciones específicas
-            if (respuestas.Any(r => r.id_pregunta == 4 && r.respuesta == 1)) // Mal aliento
-                score += Convert.ToInt32(puntuacion.claridad);
+            var pregunta4Map = new Dictionary<int, Func<ProfesionalesPuntuacionesModel, int>>
+    {
+        { 1, p => Convert.ToInt32(p.claridad) },                                                         // Mal aliento
+        { 2, p => Convert.ToInt32(p.puntualidad) },                                                      // Sarro
+        { 3, p => Convert.ToInt32(p.nivel_satisfaccion) + Convert.ToInt32(p.recomendacion) },            // Caries
+        { 4, p => Convert.ToInt32(p.cordialidad) + Convert.ToInt32(p.empatia) }                          // Mejorar sonrisa
+    };
 
-            if (respuestas.Any(r => r.id_pregunta == 4 && r.respuesta == 2)) // Sarro
-                score += Convert.ToInt32(puntuacion.puntualidad);
+            AgregarPuntajePorPregunta(respuestas, 4, pregunta4Map, puntuacion, ref score);
 
-            if (respuestas.Any(r => r.id_pregunta == 4 && r.respuesta == 3)) // Caries
-                score += Convert.ToInt32(puntuacion.nivel_satisfaccion) + Convert.ToInt32(puntuacion.recomendacion);
-
-            if (respuestas.Any(r => r.id_pregunta == 4 && r.respuesta == 4)) // Mejorar la sonrisa
-                score += Convert.ToInt32(puntuacion.cordialidad) + Convert.ToInt32(puntuacion.empatia);
-
-            // Pregunta 5 – ¿Dispuesto a seguir tratamiento integral?
-            if (respuestas.Any(r => r.id_pregunta == 5 && r.respuesta == 1)) // Sí
+            // Pregunta 5 – Tratamiento integral
+            if (TieneRespuesta(respuestas, 5, 1))
                 score += Convert.ToInt32(puntuacion.claridad) + Convert.ToInt32(puntuacion.recomendacion);
 
             return score;
         }
+
+        private void AgregarPuntajePorPregunta(
+            List<RespuestasInicialesModel> respuestas,
+            int idPregunta,
+            Dictionary<int, Func<ProfesionalesPuntuacionesModel, int>> mapa,
+            ProfesionalesPuntuacionesModel puntuacion,
+            ref int score)
+        {
+            var respuesta = respuestas.FirstOrDefault(r => r.id_pregunta == idPregunta);
+            if (respuesta != null && mapa.TryGetValue(Convert.ToInt32(respuesta.respuesta), out var calculo))
+            {
+                score += calculo(puntuacion);
+            }
+        }
+
+        private bool TieneRespuesta(List<RespuestasInicialesModel> respuestas, int idPregunta, int valorEsperado)
+        {
+            return respuestas.Any(r => r.id_pregunta == idPregunta && r.respuesta == valorEsperado);
+        }
+
 
         public async Task<List<ProfesionalesPuntuacionesModel>> ObtenerProfesionalesPuntuacion()
         {

@@ -205,13 +205,14 @@ namespace Datos
                 PacienteModel paciente = new PacienteModel();
                 MySqlCommand cmd = new MySqlCommand();
                 cmd.Connection = conexion;
-                cmd.CommandText = $"select id_paciente,rut,nombres,apellido_paterno,telefono,apellido_materno,fecha_nacimiento,correo,direccion,fecha_registro,dv from paciente where rut = ?rut and id_perfil = '1' order by id_paciente;";
+                cmd.CommandText = $"select id_perfil,id_paciente,rut,nombres,apellido_paterno,telefono,apellido_materno,fecha_nacimiento,correo,direccion,fecha_registro,dv from paciente where rut = ?rut and id_perfil = '1' order by id_paciente;";
                 cmd.Parameters.Add("?rut", MySqlDbType.VarChar).Value = usuarioRequest;
                 using var reader = await cmd.ExecuteReaderAsync();
 
                 while (await reader.ReadAsync())
                 {
                     paciente.id_paciente = Convert.ToInt64(reader["id_paciente"]);
+                    paciente.id_perfil = reader["id_perfil"].ToString();
                     paciente.nombres = reader["nombres"].ToString();
                     paciente.apellido_paterno = reader["apellido_paterno"].ToString();
                     paciente.telefono = reader["telefono"].ToString();

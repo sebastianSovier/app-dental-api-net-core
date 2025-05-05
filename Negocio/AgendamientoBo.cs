@@ -150,7 +150,7 @@ namespace Negocio
             return listaAgendamientos;
 
         }
-        public async Task<List<ObtenerTratamientoConsultaPaciente>?> ObtenerTratamientoConsultaPaciente(ObtenerTratamientoConsultaPacienteModel request)
+        public async Task<List<ObtenerTratamientoConsultaPaciente>?> ObtenerTratamientoConsultaPaciente(ObtenerTratamientoConsultaPacienteModel request, string perfil)
         {
             request = utils.CleanObject(request);
             AgendamientoDal agendamientoDal = new AgendamientoDal(_config);
@@ -160,6 +160,10 @@ namespace Negocio
             estadoAgendamientoRequest.id_agendamiento = request.id_agendamiento.ToString();
 
             HorasAgendadasDoctorModel agendamiento = await agendamientoDal.obtenerAgendamientoPorId(estadoAgendamientoRequest.id_agendamiento.ToString());
+            if (perfil.Equals("Profesional"))
+            {
+                request.id_paciente = agendamiento.id_paciente;
+            }
             request.id_agendamiento = agendamiento.id_agendamiento;
             request.id_profesional = agendamiento.id_profesional;
             List<ObtenerTratamientoConsultaPaciente> listTratamientos = await agendamientoDal.ObtenerTratamientoConsultaPaciente(request);

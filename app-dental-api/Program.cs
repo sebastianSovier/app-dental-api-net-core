@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.IdentityModel.Tokens;
 using System.Globalization;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -61,13 +60,13 @@ builder.Services.AddAntiforgery(options =>
     options.Cookie.MaxAge = TimeSpan.FromMinutes(30);
 });
 
-builder.WebHost.ConfigureKestrel(serverOptions =>
+builder.WebHost.ConfigureKestrel(options =>
 {
-    serverOptions.ConfigureHttpsDefaults(httpsOptions =>
-    {
-        httpsOptions.ServerCertificate = new X509Certificate2(builder.Configuration["PfxRuta"], builder.Configuration["PasswordCert"]);
-    });
-    serverOptions.AddServerHeader = false;
+
+    //options.Configure(builder.Configuration.GetSection("Kestrel"));
+
+
+    options.AddServerHeader = false;
 });
 builder.Services
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -88,6 +87,7 @@ builder.Services
 
 
 builder.Services.AddAuthorization();
+
 var app = builder.Build();
 var culture = CultureInfo.CreateSpecificCulture("es-CL");
 var dateformat = new DateTimeFormatInfo
@@ -144,7 +144,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 
 app.MapControllers();

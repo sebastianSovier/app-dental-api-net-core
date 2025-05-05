@@ -106,7 +106,7 @@ namespace app_dental_api.Controllers
                 PacienteModel paciente = await loginBo.ObtenerPaciente(username);
                 if (paciente == null)
                 {
-                    response.Add("Error", "Hubo un problema al validar profesional.");
+                    response.Add("Error", "Hubo un problema al validar paciente.");
                     return StatusCode(403, response);
                 }
                 request.id_paciente = paciente.id_paciente.ToString();
@@ -117,7 +117,7 @@ namespace app_dental_api.Controllers
 
             try
             {
-                return Ok(await AgendamientoBo.ObtenerTratamientoConsultaPaciente(request));
+                return Ok(await AgendamientoBo.ObtenerTratamientoConsultaPaciente(request, perfil));
             }
             catch (Exception ex)
             {
