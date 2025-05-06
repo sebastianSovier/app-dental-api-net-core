@@ -239,6 +239,48 @@ namespace Datos
                 await conexion.CloseAsync();
             }
         }
+        public async Task<PacienteModel> ObtenerPacienteAdmin(string usuarioRequest)
+        {
+            using MySqlConnection conexion = await mysql!.getConexion("bd1");
+            try
+            {
+                PacienteModel paciente = new PacienteModel();
+                MySqlCommand cmd = new MySqlCommand();
+                cmd.Connection = conexion;
+                cmd.CommandText = $"select id_perfil,id_paciente,rut,nombres,apellido_paterno,telefono,apellido_materno,fecha_nacimiento,correo,direccion,fecha_registro,dv from paciente where rut = ?rut order by id_paciente;";
+                cmd.Parameters.Add("?rut", MySqlDbType.VarChar).Value = usuarioRequest;
+                using var reader = await cmd.ExecuteReaderAsync();
+
+                while (await reader.ReadAsync())
+                {
+                    paciente.id_paciente = Convert.ToInt64(reader["id_paciente"]);
+                    paciente.id_perfil = reader["id_perfil"].ToString();
+                    paciente.nombres = reader["nombres"].ToString();
+                    paciente.apellido_paterno = reader["apellido_paterno"].ToString();
+                    paciente.telefono = reader["telefono"].ToString();
+                    paciente.correo = reader["correo"].ToString();
+                    paciente.direccion = reader["direccion"].ToString();
+                    DateTime fecha = DateTime.ParseExact(reader["fecha_nacimiento"].ToString(), "dd/MM/yyyy HH:mm:ss", CultureInfo.InvariantCulture);
+                    string fechaFormateada = fecha.ToString("dd/MM/yyyy");
+                    paciente.fecha_nacimiento = fechaFormateada;
+                    paciente.rut = reader["rut"].ToString();
+                    paciente.dv = reader["dv"].ToString();
+                    paciente.apellido_materno = reader["apellido_materno"].ToString();
+
+                }
+
+                return paciente;
+            }
+            catch (Exception ex)
+            {
+
+                utils.createlogFile(ex.Message); throw;
+            }
+            finally
+            {
+                await conexion.CloseAsync();
+            }
+        }
         public async Task<PacienteModel> ObtenerPacienteById(string id_paciente)
         {
             using MySqlConnection conexion = await mysql!.getConexion("bd1");
@@ -514,7 +556,86 @@ namespace Datos
                 await conexion.CloseAsync();
             }
         }
+        public async Task<ProfesionalModel> ObtenerProfesionalAdmin(string rut)
+        {
+            using MySqlConnection conexion = await mysql!.getConexion("bd1");
+            try
+            {
+                ProfesionalModel profesional = new ProfesionalModel();
+                MySqlCommand cmd = new MySqlCommand();
+                cmd.Connection = conexion;
+                cmd.CommandText = $"select id_perfil,id_profesional,rut,nombres,apellido_paterno,apellido_materno,fecha_nacimiento,correo,direccion,fecha_registro,dv from profesional where rut = ?rut order by id_profesional;";
+                cmd.Parameters.Add("?rut", MySqlDbType.VarChar).Value = rut;
+                using var reader = await cmd.ExecuteReaderAsync();
 
+                while (await reader.ReadAsync())
+                {
+                    profesional.id_perfil = reader["id_perfil"].ToString();
+
+                    profesional.id_profesional = Convert.ToInt64(reader["id_profesional"]);
+                    profesional.nombres = reader["nombres"].ToString();
+                    profesional.apellido_paterno = reader["apellido_paterno"].ToString();
+                    profesional.correo = reader["correo"].ToString();
+                    profesional.direccion = reader["direccion"].ToString();
+                    profesional.fecha_nacimiento = reader["fecha_nacimiento"].ToString();
+                    profesional.rut = reader["rut"].ToString();
+                    profesional.dv = reader["dv"].ToString();
+                    profesional.apellido_materno = reader["apellido_materno"].ToString();
+
+                }
+
+                return profesional;
+            }
+            catch (Exception ex)
+            {
+
+                utils.createlogFile(ex.Message); throw;
+            }
+            finally
+            {
+                await conexion.CloseAsync();
+            }
+        }
+        public async Task<ProfesionalModel> ObtenerAdministrador(string rut)
+        {
+            using MySqlConnection conexion = await mysql!.getConexion("bd1");
+            try
+            {
+                ProfesionalModel profesional = new ProfesionalModel();
+                MySqlCommand cmd = new MySqlCommand();
+                cmd.Connection = conexion;
+                cmd.CommandText = $"select id_perfil,id_profesional,rut,nombres,apellido_paterno,apellido_materno,fecha_nacimiento,correo,direccion,fecha_registro,dv from profesional where rut = ?rut and id_perfil = '3' order by id_profesional;";
+                cmd.Parameters.Add("?rut", MySqlDbType.VarChar).Value = rut;
+                using var reader = await cmd.ExecuteReaderAsync();
+
+                while (await reader.ReadAsync())
+                {
+                    profesional.id_perfil = reader["id_perfil"].ToString();
+
+                    profesional.id_profesional = Convert.ToInt64(reader["id_profesional"]);
+                    profesional.nombres = reader["nombres"].ToString();
+                    profesional.apellido_paterno = reader["apellido_paterno"].ToString();
+                    profesional.correo = reader["correo"].ToString();
+                    profesional.direccion = reader["direccion"].ToString();
+                    profesional.fecha_nacimiento = reader["fecha_nacimiento"].ToString();
+                    profesional.rut = reader["rut"].ToString();
+                    profesional.dv = reader["dv"].ToString();
+                    profesional.apellido_materno = reader["apellido_materno"].ToString();
+
+                }
+
+                return profesional;
+            }
+            catch (Exception ex)
+            {
+
+                utils.createlogFile(ex.Message); throw;
+            }
+            finally
+            {
+                await conexion.CloseAsync();
+            }
+        }
         public async Task<bool> CrearPaciente(PacienteModel usuarioRequest)
         {
 

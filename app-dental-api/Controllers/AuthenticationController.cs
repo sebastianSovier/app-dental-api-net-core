@@ -80,7 +80,18 @@ namespace app_dental_api.Controllers
             PasswordPacienteModel password = new PasswordPacienteModel();
             try
             {
-                usuario = await Login.ObtenerPaciente(request.rut);
+                usuario = await Login.ObtenerPacienteAdmin(request.rut);
+                if (usuario.id_perfil == "4")
+                {
+                    return Ok(new LoginResponse()
+                    {
+                        access_Token = "",
+                        auth = false,
+                        id = 0,
+                        login = false,
+                        message = "usuario inhabilitado."
+                    });
+                }
                 password = await Password.ObtenerPasswordPaciente(usuario.id_paciente.ToString());
                 if (!(request.rut == usuario.rut + usuario.dv) || !(utils.ComparePassword(request.password, password.contrasena!)))
                 {
@@ -126,10 +137,22 @@ namespace app_dental_api.Controllers
             try
             {
 
-                usuario = await Login.ObtenerPaciente(request.rut);
+                usuario = await Login.ObtenerPacienteAdmin(request.rut);
                 password = await Password.ObtenerPasswordPaciente(usuario.id_paciente.ToString());
                 if (usuario.rut != null)
                 {
+                    if (usuario.id_perfil == "4")
+                    {
+                        return Ok(new LoginResponse()
+                        {
+                            access_Token = "",
+                            auth = false,
+                            id = 0,
+                            login = false,
+                            message = "usuario inhabilitado."
+                        });
+
+                    }
                     if (password.contrasena != null)
                     {
                         return Ok(new LoginResponse()
@@ -154,8 +177,8 @@ namespace app_dental_api.Controllers
                         });
 
                     }
-                }
 
+                }
                 string token = await Task.Run(() => utils.GenerateJwtToken(request.rut, "Paciente", _config));
                 return Ok(new LoginResponse()
                 {
@@ -164,6 +187,8 @@ namespace app_dental_api.Controllers
                     id = 0,
                     login = false
                 });
+
+
             }
             catch (Exception ex)
             {
@@ -228,12 +253,37 @@ namespace app_dental_api.Controllers
             PasswordBo Password = new PasswordBo(_config);
             var response = new Dictionary<string, string>();
             ProfesionalModel usuario = new ProfesionalModel();
+            ProfesionalModel usuario1 = new ProfesionalModel();
             PasswordProfesionalModel password = new PasswordProfesionalModel();
             try
             {
                 string token = "";
-                usuario = await Login.ObtenerProfesional(request.rut);
+
+                usuario = await Login.ObtenerAdministrador(request.rut);
+                usuario1 = await Login.ObtenerProfesionalAdmin(request.rut);
+                if (usuario.rut == null && usuario1.rut == null)
+                {
+                    response.Add("Error", "Invalid username or password");
+                    return StatusCode(401, response);
+                }
+
+                if (usuario.rut == null)
+                {
+                    usuario = usuario1;
+                }
+                if (usuario.id_perfil == "4")
+                {
+                    return Ok(new LoginResponse()
+                    {
+                        access_Token = "",
+                        auth = false,
+                        id = 0,
+                        login = false,
+                        message = "usuario inhabilitado."
+                    });
+                }
                 password = await Password.ObtenerPasswordProfesional(usuario.id_profesional.ToString());
+
                 if (!(request.rut == usuario.rut + usuario.dv) || !(utils.ComparePassword(request.password, password.contrasena!)))
                 {
                     response.Add("Error", "Invalid username or password");
@@ -471,28 +521,28 @@ namespace app_dental_api.Controllers
             LoginBo loginBo = new(_config);
             List<ProfesionalModel> profesionales = new List<ProfesionalModel>();
             List<PacienteModel> pacientes = new List<PacienteModel>();
-            if (username == null)
-            {
-                response.Add("Error", "Hubo un problema al validar usuario.");
-                return StatusCode(403, response);
-            }
-            if (perfil.Equals("Administrador"))
-            {
-                profesionales = await loginBo.ObtenerTodosProfesionales();
-                pacientes = await loginBo.ObtenerTodosPacientes();
-                if (profesionales == null && pacientes == null)
-                {
-                    response.Add("Error", "Hubo un problema al obtener data.");
-                    return StatusCode(403, response);
-                }
-
-
-            }
-
-
             try
             {
-                return Ok(new { Profesionales = profesionales, Pacientes = pacientes });
+                if (username == null)
+                {
+                    response.Add("Error", "Hubo un problema al validar usuario.");
+                    return StatusCode(403, response);
+                }
+                if (perfil.Equals("Administrador"))
+                {
+                    profesionales = await loginBo.ObtenerTodosProfesionales();
+                    pacientes = await loginBo.ObtenerTodosPacientes();
+                    if (profesionales == null && pacientes == null)
+                    {
+                        response.Add("Error", "Hubo un problema al obtener data.");
+                        return StatusCode(403, response);
+                    }
+
+                    return Ok(new { Profesionales = profesionales, Pacientes = pacientes });
+                }
+                response.Add("Error", "Hubo un problema al validar usuario.");
+                return StatusCode(403, response);
+
             }
             catch (Exception ex)
             {
@@ -521,42 +571,45 @@ namespace app_dental_api.Controllers
             LoginBo loginBo = new(_config);
             ProfesionalModel profesional = new ProfesionalModel();
             PacienteModel paciente = new PacienteModel();
-            if (username == null)
+            try
             {
-                response.Add("Error", "Hubo un problema al validar usuario.");
-                return StatusCode(403, response);
-            }
-            if (perfil.Equals("Administrador"))
-            {
-                string rutdv = request.rut;
-                paciente = await loginBo.ObtenerPaciente(rutdv);
-                profesional = await loginBo.ObtenerProfesional(rutdv);
-                if (profesional.rut == null && paciente.rut == null)
+                if (username == null)
                 {
-                    response.Add("Error", "Hubo un problema al obtener data.");
+                    response.Add("Error", "Hubo un problema al validar usuario.");
                     return StatusCode(403, response);
                 }
-                if (profesional.rut != null)
+                if (perfil.Equals("Administrador"))
                 {
-                    await loginBo.EliminarProfesional(profesional.id_profesional.ToString());
+                    string rutdv = request.rut;
+                    paciente = await loginBo.ObtenerPacienteAdmin(rutdv);
+                    profesional = await loginBo.ObtenerProfesionalAdmin(rutdv);
+                    if (profesional.rut == null && paciente.rut == null)
+                    {
+                        response.Add("Error", "Hubo un problema al obtener data.");
+                        return StatusCode(403, response);
+                    }
+                    if (profesional.rut != null)
+                    {
+                        await loginBo.EliminarProfesional(profesional.id_profesional.ToString());
+                    }
+                    else
+                    {
+                        await loginBo.EliminarPaciente(paciente.id_paciente.ToString());
+                    }
+
+                    return Ok(new LoginResponse
+                    {
+                        auth = true
+
+                    });
+
                 }
                 else
                 {
-                    await loginBo.EliminarPaciente(paciente.id_paciente.ToString());
+                    response.Add("Error", "Hubo un problema al validar usuario.");
+                    return StatusCode(403, response);
                 }
 
-                return Ok(new LoginResponse
-                {
-                    auth = true
-
-                });
-
-            }
-
-
-            try
-            {
-                return Ok();
             }
             catch (Exception ex)
             {
@@ -584,44 +637,54 @@ namespace app_dental_api.Controllers
             var perfil = User.FindFirst(ClaimTypes.Role)?.Value;
             LoginBo loginBo = new(_config);
             ProfesionalModel profesional = new ProfesionalModel();
+            ProfesionalModel administrador = new ProfesionalModel();
             PacienteModel paciente = new PacienteModel();
-            if (username == null)
+            try
             {
-                response.Add("Error", "Hubo un problema al validar usuario.");
-                return StatusCode(403, response);
-            }
-            if (perfil.Equals("Administrador"))
-            {
-                string rutdv = request.rut;
-                paciente = await loginBo.ObtenerPaciente(rutdv);
-                profesional = await loginBo.ObtenerProfesional(rutdv);
-                if (profesional.rut == null && paciente.rut == null)
+                if (username == null)
                 {
-                    response.Add("Error", "Hubo un problema al obtener data.");
+                    response.Add("Error", "Hubo un problema al validar usuario.");
                     return StatusCode(403, response);
                 }
-                string id_perfil = request.perfil == "Profesional" ? "2" : request.perfil == "Paciente" ? "1" : "3";
-                if (profesional != null)
+                if (perfil.Equals("Administrador"))
                 {
-                    await loginBo.ModificarPerfilProfesional(profesional.rut.ToString(), request.perfil);
+                    string rutdv = request.rut;
+                    paciente = await loginBo.ObtenerPacienteAdmin(rutdv);
+                    profesional = await loginBo.ObtenerProfesionalAdmin(rutdv);
+                    administrador = await loginBo.ObtenerAdministrador(username);
+                    if (administrador.rut == null)
+                    {
+                        response.Add("Error", "Hubo un problema al obtener data.");
+                        return StatusCode(403, response);
+                    }
+                    if (profesional.rut == null && paciente.rut == null)
+                    {
+                        response.Add("Error", "Hubo un problema al obtener data.");
+                        return StatusCode(403, response);
+                    }
+                    string id_perfil = request.perfil == "Profesional" ? "2" : request.perfil == "Paciente" ? "1" : request.perfil == "Administrador" ? "3" : "4";
+                    if (profesional.rut != null)
+                    {
+                        await loginBo.ModificarPerfilProfesional(profesional.id_profesional.ToString(), id_perfil);
+                    }
+                    else
+                    {
+                        await loginBo.ModificarPerfilPaciente(paciente.id_paciente.ToString(), id_perfil);
+                    }
+
+                    return Ok(new LoginResponse
+                    {
+                        auth = true
+
+                    });
+
                 }
                 else
                 {
-                    await loginBo.ModificarPerfilPaciente(paciente.rut.ToString(), request.perfil);
+                    response.Add("Error", "Hubo un problema al validar usuario.");
+                    return StatusCode(403, response);
                 }
 
-                return Ok(new LoginResponse
-                {
-                    auth = true
-
-                });
-
-            }
-
-
-            try
-            {
-                return Ok();
             }
             catch (Exception ex)
             {

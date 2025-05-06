@@ -27,6 +27,15 @@ namespace Negocio
             return usuario;
 
         }
+        public async Task<PacienteModel> ObtenerPacienteAdmin(string rut)
+        {
+            PacienteModel usuario = new PacienteModel();
+            UsuarioDal usuarioDal = new UsuarioDal(_config);
+            string rutSinDv = util.getRutWithoutDv(rut);
+            usuario = await usuarioDal.ObtenerPacienteAdmin(util.CleanObject(rutSinDv));
+            return usuario;
+
+        }
         public async Task<bool> EliminarProfesional(string profesional_id)
         {
             PacienteModel usuario = new PacienteModel();
@@ -76,6 +85,24 @@ namespace Negocio
             UsuarioDal usuarioDal = new UsuarioDal(_config);
             string rutSinDv = util.getRutWithoutDv(rut);
             usuario = await usuarioDal.ObtenerProfesional(util.CleanObject(rutSinDv));
+            return usuario;
+
+        }
+        public async Task<ProfesionalModel> ObtenerProfesionalAdmin(string rut)
+        {
+            ProfesionalModel usuario = new ProfesionalModel();
+            UsuarioDal usuarioDal = new UsuarioDal(_config);
+            string rutSinDv = util.getRutWithoutDv(rut);
+            usuario = await usuarioDal.ObtenerProfesionalAdmin(util.CleanObject(rutSinDv));
+            return usuario;
+
+        }
+        public async Task<ProfesionalModel> ObtenerAdministrador(string rut)
+        {
+            ProfesionalModel usuario = new ProfesionalModel();
+            UsuarioDal usuarioDal = new UsuarioDal(_config);
+            string rutSinDv = util.getRutWithoutDv(rut);
+            usuario = await usuarioDal.ObtenerAdministrador(util.CleanObject(rutSinDv));
             return usuario;
 
         }

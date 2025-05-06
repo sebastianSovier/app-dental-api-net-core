@@ -54,34 +54,43 @@ namespace Negocio
             {
                 item.especialidad = listEpecialidades.Find(x => x.id_especialidad == item.id_especialidad)!.descripcion_especialidad;
             }
-
+            bool recomendaciones = true;
             var tareas = listProfesionales
             .Select(async p =>
              {
                  var puntuaciones = await utilitarioDal.ObtenerProfesionalesPuntuaciones(p.id_profesional);
                  var puntaje = CalcularPuntajeRelevancia(p, respuestasPaciente, puntuaciones);
+                 if (puntaje <= 0)
+                 {
+                     recomendaciones = false;
+                 }
                  return new
                  {
                      Profesional = p,
                      Puntaje = puntaje,
                  };
              });
-
             var resultados = await Task.WhenAll(tareas);
-
-            List<ProfesionalesModel> recomendados = resultados
-            .OrderByDescending(x => x.Puntaje)
-             .Select(x =>
-             {
-                 x.Profesional.puntaje = x.Puntaje.ToString();
-                 return x.Profesional;
-             })
-             .ToList();
-
-            //return recomendados;
-
-            return recomendados;
-
+            if (recomendaciones == false)
+            {
+                foreach (var item in listProfesionales)
+                {
+                    item.puntaje = null;
+                }
+                return listProfesionales;
+            }
+            else
+            {
+                List<ProfesionalesModel> recomendados = resultados
+                .OrderByDescending(x => x.Puntaje)
+                 .Select(x =>
+                 {
+                     x.Profesional.puntaje = x.Puntaje.ToString();
+                     return x.Profesional;
+                 })
+                 .ToList();
+                return recomendados;
+            }
 
         }
         private int CalcularPuntajeRelevancia(ProfesionalesModel p, List<RespuestasInicialesModel> respuestas, ProfesionalesPuntuacionesModel puntuacion)
@@ -95,10 +104,10 @@ namespace Negocio
             // Pregunta 1 – Motivo principal de consulta
             var pregunta1Map = new Dictionary<int, Func<ProfesionalesPuntuacionesModel, int>>
     {
-        { 1, p => Convert.ToInt32(p.puntualidad) + Convert.ToInt32(p.claridad) },                  // Prevención
-        { 2, p => Convert.ToInt32(p.nivel_satisfaccion) + Convert.ToInt32(p.recomendacion) },      // Molestias
-        { 3, p => Convert.ToInt32(p.empatia) + Convert.ToInt32(p.claridad) },                      // Sensibilidad
-        { 4, p => Convert.ToInt32(p.cordialidad) + Convert.ToInt32(p.empatia) }                    // Estético
+        { 1, p => Convert.ToInt32(p.puntualidad) + Convert.ToInt32(p.claridad) },                  // Prevención    
+        { 2, p => Convert.ToInt32(p.nivel_satisfaccion) + Convert.ToInt32(p.recomendacion) },      // Molestias    
+        { 3, p => Convert.ToInt32(p.empatia) + Convert.ToInt32(p.claridad) },                      // Sensibilidad  
+        { 4, p => Convert.ToInt32(p.cordialidad) + Convert.ToInt32(p.empatia) }                    // Estético    
     };
 
             AgregarPuntajePorPregunta(respuestas, 1, pregunta1Map, puntuacion, ref score);

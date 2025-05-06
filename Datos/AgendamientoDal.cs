@@ -104,16 +104,17 @@ namespace Datos
 
 
         }
-        public async Task<bool> ObtenerPuntuacionPorPacienteProfesional(string paciente_id, string profesional_id)
+        public async Task<bool> ObtenerPuntuacionPorPacienteProfesional(string paciente_id, string profesional_id, string agendamiento_id)
         {
             using MySqlConnection conexion = await mysql!.getConexion("bd1");
             try
             {
                 MySqlCommand cmd = new MySqlCommand();
                 cmd.Connection = conexion;
-                cmd.CommandText = $"select p.id_puntuacion from puntuacion p  where p.id_paciente  = ?paciente_id and p.id_profesional = ?profesional_id order by id_puntuacion;";
+                cmd.CommandText = $"select p.id_puntuacion from puntuacion p  where p.id_paciente  = ?paciente_id and p.id_profesional = ?profesional_id and id_agendamiento = ?agendamiento_id order by id_puntuacion;";
                 cmd.Parameters.Add("?paciente_id", MySqlDbType.VarChar).Value = paciente_id;
                 cmd.Parameters.Add("?profesional_id", MySqlDbType.VarChar).Value = profesional_id;
+                cmd.Parameters.Add("?agendamiento_id", MySqlDbType.VarChar).Value = agendamiento_id;
                 using var reader = await cmd.ExecuteReaderAsync();
 
                 bool result = false;
@@ -374,6 +375,7 @@ namespace Datos
                 await conexion.CloseAsync();
             }
         }
+
         public async Task<bool> ModificarAgendamiento(ModificarAgendamientoModel agendamientoRequest)
         {
 
@@ -402,6 +404,33 @@ namespace Datos
                 await conexion.CloseAsync();
             }
         }
+        public async Task<bool> ModificarDerivacionAgendamiento(ModificarAgendamientoModel agendamientoRequest)
+        {
+
+            using MySqlConnection conexion = await mysql!.getConexion("bd1");
+            try
+            {
+                MySqlCommand cmd = new MySqlCommand();
+                cmd.Connection = conexion;
+                cmd.CommandText = "UPDATE `sistemaodontologico`.`agendamiento` SET id_profesional = ?id_profesional  where id_agendamiento = ?id_agendamiento and id_paciente = ?id_paciente;";
+
+                cmd.Parameters.Add("?id_agendamiento", MySqlDbType.VarChar).Value = agendamientoRequest.id_agendamiento;
+                cmd.Parameters.Add("?id_paciente", MySqlDbType.VarChar).Value = agendamientoRequest.id_paciente;
+                cmd.Parameters.Add("?id_profesional", MySqlDbType.VarChar).Value = agendamientoRequest.id_profesional;
+
+                await cmd.ExecuteNonQueryAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+
+                utils.createlogFile(ex.Message); throw;
+            }
+            finally
+            {
+                await conexion.CloseAsync();
+            }
+        }
         public async Task<bool> CrearPuntuacionPorAtencionDoctor(CrearPuntuacionAtencionDoctorModel crearPuntuacionRequest)
         {
 
@@ -410,10 +439,11 @@ namespace Datos
             {
                 MySqlCommand cmd = new MySqlCommand();
                 cmd.Connection = conexion;
-                cmd.CommandText = "INSERT INTO `sistemaodontologico`.`puntuacion` (`id_paciente`, `id_profesional`, `puntaje_general`, `recomendacion`, `empatia`, `claridad`, `puntualidad`, `cordialidad`, `nivel_satisfaccion`) VALUES (?id_paciente, ?id_profesional, ?puntaje_general, ?recomendacion,?claridad, ?puntualidad, ?empatia, ?cordialidad, ?nivel_satisfaccion);";
+                cmd.CommandText = "INSERT INTO `sistemaodontologico`.`puntuacion` (`id_paciente`, `id_profesional`,`id_agendamiento`, `puntaje_general`, `recomendacion`, `empatia`, `claridad`, `puntualidad`, `cordialidad`, `nivel_satisfaccion`) VALUES (?id_paciente, ?id_profesional,?id_agendamiento, ?puntaje_general, ?recomendacion,?claridad, ?puntualidad, ?empatia, ?cordialidad, ?nivel_satisfaccion);";
 
                 cmd.Parameters.Add("?id_paciente", MySqlDbType.VarChar).Value = crearPuntuacionRequest.id_paciente;
                 cmd.Parameters.Add("?id_profesional", MySqlDbType.VarChar).Value = crearPuntuacionRequest.id_profesional;
+                cmd.Parameters.Add("?id_agendamiento", MySqlDbType.VarChar).Value = crearPuntuacionRequest.id_agendamiento;
                 cmd.Parameters.Add("?puntaje_general", MySqlDbType.VarChar).Value = crearPuntuacionRequest.puntaje_general;
                 cmd.Parameters.Add("?recomendacion", MySqlDbType.VarChar).Value = crearPuntuacionRequest.recomendacion;
                 cmd.Parameters.Add("?claridad", MySqlDbType.VarChar).Value = crearPuntuacionRequest.claridad;
@@ -591,6 +621,141 @@ namespace Datos
                 await conexion.CloseAsync();
             }
 
+        }
+        public async Task<List<HorasAgendadasDoctorModel>> obtenerDiaSinDisponibilidadPorDoctor(HorasAgendadasRequestModel request)
+        {
+
+            using MySqlConnection conexion = await mysql!.getConexion("bd1");
+            try
+            {
+                List<HorasAgendadasDoctorModel> listAgendamientos = new List<HorasAgendadasDoctorModel>();
+                MySqlCommand cmd = new MySqlCommand();
+                cmd.Connection = conexion;
+                cmd.CommandText = $"select a.id_agendamiento,a.id_paciente,DATE_FORMAT(a.fecha, '%Y-%m-%d') AS fecha,a.hora,a.id_profesional from agendamiento a  where a.id_profesional = ?id_profesional and a.fecha >=  NOW() and a.id_paciente is null order by a.id_agendamiento;";
+                cmd.Parameters.Add("?id_profesional", MySqlDbType.VarChar).Value = request.id_profesional;
+                using var reader = await cmd.ExecuteReaderAsync();
+
+                while (await reader.ReadAsync())
+                {
+                    HorasAgendadasDoctorModel agendamiento = new HorasAgendadasDoctorModel();
+                    agendamiento.id_paciente = reader["id_paciente"].ToString();
+                    agendamiento.id_profesional = reader["id_profesional"].ToString();
+                    agendamiento.id_paciente = reader["id_paciente"].ToString();
+                    agendamiento.fecha = reader["fecha"].ToString();
+                    TimeSpan horaSpan = TimeSpan.Parse(reader["hora"].ToString());
+                    agendamiento.hora = horaSpan.ToString(@"hh\:mm");
+                    agendamiento.id_agendamiento = reader["id_agendamiento"].ToString();
+
+                    listAgendamientos.Add(agendamiento);
+
+                }
+                return listAgendamientos;
+            }
+            catch (Exception ex)
+            {
+
+                utils.createlogFile(ex.Message); throw;
+            }
+            finally
+            {
+                await conexion.CloseAsync();
+            }
+
+        }
+        public async Task<List<HorasAgendadasDoctorModel>> obtenerDisponibilidadPorDoctor(HorasAgendadasRequestModel request)
+        {
+
+            using MySqlConnection conexion = await mysql!.getConexion("bd1");
+            try
+            {
+                List<HorasAgendadasDoctorModel> listAgendamientos = new List<HorasAgendadasDoctorModel>();
+                MySqlCommand cmd = new MySqlCommand();
+                cmd.Connection = conexion;
+                cmd.CommandText = $"select e.estado,a.id_agendamiento,e.consulta_realizada,a.id_paciente,a.fecha,a.hora,a.id_profesional from agendamiento a join estado_agendamiento e  on e.id_agendamiento = a.id_agendamiento   where a.id_profesional = ?id_profesional and fecha >= SELECT DATE_ADD(NOW(), INTERVAL 1 DAY); order by a.id_agendamiento;";
+                cmd.Parameters.Add("?id_profesional", MySqlDbType.VarChar).Value = request.id_profesional;
+                using var reader = await cmd.ExecuteReaderAsync();
+
+                while (await reader.ReadAsync())
+                {
+                    HorasAgendadasDoctorModel agendamiento = new HorasAgendadasDoctorModel();
+                    agendamiento.id_profesional = reader["id_profesional"].ToString();
+                    agendamiento.consulta_realizada = reader["consulta_realizada"].ToString();
+                    agendamiento.id_paciente = reader["id_paciente"].ToString();
+                    agendamiento.fecha = reader["fecha"].ToString();
+                    TimeSpan horaSpan = TimeSpan.Parse(reader["hora"].ToString());
+                    agendamiento.hora = horaSpan.ToString(@"hh\:mm");
+                    agendamiento.id_agendamiento = reader["id_agendamiento"].ToString();
+                    agendamiento.estado = reader["estado"].ToString();
+
+                    listAgendamientos.Add(agendamiento);
+
+                }
+                return listAgendamientos;
+            }
+            catch (Exception ex)
+            {
+
+                utils.createlogFile(ex.Message); throw;
+            }
+            finally
+            {
+                await conexion.CloseAsync();
+            }
+
+        }
+        public async Task<bool> modificarDisponibilidadPorProfesional(ModificarAgendamientoProfesionalModel agendamientoRequest)
+        {
+
+            using MySqlConnection conexion = await mysql!.getConexion("bd1");
+            try
+            {
+                MySqlCommand cmd = new MySqlCommand();
+                cmd.Connection = conexion;
+                cmd.CommandText = "INSERT INTO `sistemaodontologico`.`agendamiento` (`id_paciente`, `id_profesional`, `fecha`, `hora`) VALUES (NULL, ?id_profesional, ?fecha, ?hora);";
+
+                cmd.Parameters.Add("?id_profesional", MySqlDbType.VarChar).Value = agendamientoRequest.id_profesional;
+
+                cmd.Parameters.Add("?fecha", MySqlDbType.VarChar).Value = agendamientoRequest.fecha;
+                cmd.Parameters.Add("?hora", MySqlDbType.VarChar).Value = agendamientoRequest.hora;
+                await cmd.ExecuteNonQueryAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+
+                utils.createlogFile(ex.Message); throw;
+            }
+            finally
+            {
+                await conexion.CloseAsync();
+            }
+        }
+        public async Task<bool> modificarHoraDisponibilidadPorProfesional(ModificarAgendamientoProfesionalModel agendamientoRequest)
+        {
+
+            using MySqlConnection conexion = await mysql!.getConexion("bd1");
+            try
+            {
+                MySqlCommand cmd = new MySqlCommand();
+                cmd.Connection = conexion;
+                cmd.CommandText = $"update agendamiento set hora = ?hora where id_profesional = ?id_profesional and fecha = ?fecha ;";
+                cmd.Parameters.Add("?id_profesional", MySqlDbType.VarChar).Value = agendamientoRequest.id_profesional;
+                cmd.Parameters.Add("?fecha", MySqlDbType.VarChar).Value = agendamientoRequest.fecha;
+                cmd.Parameters.Add("?hora", MySqlDbType.VarChar).Value = agendamientoRequest.hora;
+
+                await cmd.ExecuteNonQueryAsync();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+
+                utils.createlogFile(ex.Message); throw;
+            }
+            finally
+            {
+                await conexion.CloseAsync();
+            }
         }
         public async Task<List<HorasAgendadasDoctorModel>> obtenerHistoricoHorasAgendadasPorDoctor(HorasAgendadasRequestModel request)
         {

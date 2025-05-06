@@ -183,6 +183,54 @@ namespace app_dental_api.Controllers
             }
         }
         [HttpPost]
+        [ActionName("modificarDerivacionAgendamientoPaciente")]
+        [ProducesResponseType<OkResponse>(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> modificarDerivacionAgendamientoPaciente(ModificarAgendamientoModel request)
+        {
+            LoginBo Login = new LoginBo(_config);
+            AgendamientoBo AgendamientoBo = new AgendamientoBo(_config);
+            var response = new Dictionary<string, string>();
+            ProfesionalModel usuario = new ProfesionalModel();
+
+            try
+            {
+                var userSesion = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var perfil = User.FindFirst(ClaimTypes.Role)?.Value;
+                if (userSesion == null)
+                {
+                    response.Add("Error", "Hubo un problema al validar paciente.");
+                    return StatusCode(403, response);
+                }
+                usuario = await Login.ObtenerProfesional(userSesion!);
+                if (usuario.rut == null)
+                {
+                    response.Add("Error", "Invalid username");
+                    return StatusCode(403, response);
+                }
+                await AgendamientoBo.ModificarDerivacionAgendamiento(request, usuario.correo);
+
+
+
+                return Ok(new OkResponse
+                {
+                    auth = true
+
+                });
+
+
+            }
+            catch (Exception ex)
+            {
+                utils.createlogFile(ex.Message);
+                response.Add("Error", "Hubo un problema al crear paciente.");
+                return StatusCode(500, response);
+            }
+        }
+        [HttpPost]
         [ActionName("obtenerHorasAgendadasPorPaciente")]
         [ProducesResponseType<ObtenerAgendamientoPacienteModel>(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

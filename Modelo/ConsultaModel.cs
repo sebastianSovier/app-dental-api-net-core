@@ -11,6 +11,16 @@
         public string? fecha { get; set; }
         public string? hora { get; set; }
     }
+
+    public class ModificarAgendamientoProfesionalModel
+    {
+        public string? id_profesional { get; set; }
+        public string? fechaDesde { get; set; }
+        public string? fechaHasta { get; set; }
+        public string? fecha { get; set; }
+        public string? hora { get; set; }
+    }
+
     public class ModificarAgendamientoModel
     {
         public string? correo { get; set; }
