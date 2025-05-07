@@ -287,7 +287,7 @@ namespace Datos
                 List<ObtenerAgendamientoPacienteModel> listAgendamientos = new List<ObtenerAgendamientoPacienteModel>();
                 MySqlCommand cmd = new MySqlCommand();
                 cmd.Connection = conexion;
-                cmd.CommandText = $"update estado_agendamiento set consulta_realizada = '1' where id_agendamiento = ?id_agendamiento;";
+                cmd.CommandText = $"update estado_agendamiento set consulta_realizada = '1', estado = 'CONFIRMADO' where id_agendamiento = ?id_agendamiento;";
                 cmd.Parameters.Add("?id_agendamiento", MySqlDbType.VarChar).Value = agendamiento_id;
 
                 await cmd.ExecuteNonQueryAsync();
@@ -586,7 +586,7 @@ namespace Datos
                 List<HorasAgendadasDoctorModel> listAgendamientos = new List<HorasAgendadasDoctorModel>();
                 MySqlCommand cmd = new MySqlCommand();
                 cmd.Connection = conexion;
-                cmd.CommandText = $"select e.estado,a.id_agendamiento,e.consulta_realizada,a.id_paciente,a.fecha,a.hora,a.id_profesional from agendamiento a join estado_agendamiento e  on e.id_agendamiento = a.id_agendamiento   where a.id_profesional = ?id_profesional and fecha >= ?fechaDesde and fecha <= ?fechaHasta order by a.id_agendamiento;";
+                cmd.CommandText = $"select e.estado,a.id_agendamiento,e.consulta_realizada,a.id_paciente,a.fecha,a.hora,a.id_profesional from agendamiento a join estado_agendamiento e  on e.id_agendamiento = a.id_agendamiento   where a.id_profesional = ?id_profesional and fecha >= now() and fecha <= ?fechaHasta order by a.id_agendamiento;";
                 cmd.Parameters.Add("?id_profesional", MySqlDbType.VarChar).Value = request.id_profesional;
                 DateTime fechaDesde = DateTime.ParseExact(request.fechaDesde, "dd/MM/yyyy", CultureInfo.InvariantCulture);
                 cmd.Parameters.Add("?fechaDesde", MySqlDbType.Date).Value = fechaDesde;
@@ -766,7 +766,7 @@ namespace Datos
                 List<HorasAgendadasDoctorModel> listAgendamientos = new List<HorasAgendadasDoctorModel>();
                 MySqlCommand cmd = new MySqlCommand();
                 cmd.Connection = conexion;
-                cmd.CommandText = $"select a.id_agendamiento,e.consulta_realizada,a.id_paciente,a.fecha,a.hora,a.id_profesional from agendamiento a join estado_agendamiento e  on e.id_agendamiento = a.id_agendamiento   where a.id_profesional = ?id_profesional and fecha < NOW() and e.consulta_realizada = '1' order by a.id_agendamiento;";
+                cmd.CommandText = $"select a.id_agendamiento,e.consulta_realizada,a.id_paciente,a.fecha,a.hora,a.id_profesional from agendamiento a join estado_agendamiento e  on e.id_agendamiento = a.id_agendamiento   where a.id_profesional = ?id_profesional and fecha < NOW() order by a.id_agendamiento;";
                 cmd.Parameters.Add("?id_profesional", MySqlDbType.VarChar).Value = request.id_profesional;
                 DateTime fechaDesde = DateTime.ParseExact(request.fechaDesde, "dd/MM/yyyy", CultureInfo.InvariantCulture);
                 cmd.Parameters.Add("?fechaDesde", MySqlDbType.Date).Value = fechaDesde;
