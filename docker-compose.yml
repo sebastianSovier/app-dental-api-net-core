@@ -25,20 +25,16 @@ services:
     restart: on-failure
     volumes:
       - mysql_data:/var/lib/mysql
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-          cpus: "0.5"
-        reservations:
-          memory: 256M
-          cpus: "0.25"
+    mem_limit: 512m
+    cpus: 0.3
 
   app-dental:
     networks:
       mi_red:
         ipv4_address: 172.19.0.2
     image: secros18/app-dental-api-mysql:latest
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     ports:
       - "443:443"
       - "81:80"
@@ -63,17 +59,13 @@ services:
       - ./https:/https:ro
       - /home/ubuntu/certs-api:/app/certs:ro
     restart: on-failure
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-          cpus: "0.5"
-        reservations:
-          memory: 256M
-          cpus: "0.25"
+    mem_limit: 256m
+    cpus: 0.3
 
   web:
     image: secros18/app-dental-web:latest
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     ports:
       - "8080:80"
       - "444:443"
@@ -86,14 +78,21 @@ services:
     volumes:
       - /home/ubuntu/certs:/etc/nginx/ssl:ro
     restart: on-failure
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-          cpus: "0.5"
-        reservations:
-          memory: 256M
-          cpus: "0.25"
+    mem_limit: 256m
+    cpus: 0.3
+          
+  watchtower:
+     image: containrrr/watchtower
+     container_name: watchtower
+     restart: unless-stopped
+     volumes:
+       - /var/run/docker.sock:/var/run/docker.sock
+     command: --interval 150 --cleanup --label-enable
+     mem_limit: 100m
+     cpus: 0.1  
+     networks:
+      mi_red:
+        ipv4_address: 172.19.0.6
 
 volumes:
   mysql_data:

@@ -126,8 +126,26 @@ app.Use(async (context, next) =>
     context.Response.Headers.Remove("Server");
     context.Response.Headers.Remove("X-Powered-By");
 
+    var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>();
+    var origin = context.Request.Headers["Origin"].FirstOrDefault();
+
+    if (!string.IsNullOrEmpty(origin) && allowedOrigins != null && !allowedOrigins.Contains(origin))
+    {
+        context.Response.StatusCode = 403;
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsync("{\"error\": \"Forbidden\"}");
+        return;
+    }
+
     await next();
+
+    if (context.Response.StatusCode == 404 && !context.Response.HasStarted)
+    {
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsync("{\"error\": \"Endpoint no encontrado\"}");
+    }
 });
+
 
 app.UseSession();
 app.UseAntiforgery();
