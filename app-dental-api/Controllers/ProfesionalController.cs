@@ -186,6 +186,55 @@ namespace app_dental_api.Controllers
         /// <param name="request">LoginRequest.</param>
         /// <returns>A <see cref="Task{TResult}"/> representing the result of the asynchronous operation.</returns>
         [HttpPost]
+        [ActionName("obtenerHorasProximasAgendadasPorProfesional")]
+        [ProducesResponseType<List<HorasAgendadasDoctorModel>>(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> ObtenerHorasProximasAgendadasPorProfesional(
+            [FromBody] HorasAgendadasRequestModel request)
+        {
+            var response = new Dictionary<string, string>();
+            var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var perfil = User.FindFirst(ClaimTypes.Role)?.Value;
+            LoginBo loginBo = new(_config);
+            if (username == null)
+            {
+                response.Add("Error", "Hubo un problema al validar paciente.");
+                return StatusCode(403, response);
+            }
+            if (perfil.Equals("Profesional"))
+            {
+                ProfesionalModel profesional = await loginBo.ObtenerProfesional(username);
+                if (profesional.rut == null)
+                {
+                    response.Add("Error", "Hubo un problema al validar profesional.");
+                    return StatusCode(403, response);
+                }
+                request.id_profesional = profesional.id_profesional.ToString();
+
+            }
+            request.tipoUsuario = perfil;
+
+            AgendamientoBo AgendamientoBo = new AgendamientoBo(_config);
+
+            try
+            {
+                return Ok(await AgendamientoBo.ObtenerHorasProximasAgendadasPorDoctor(request));
+            }
+            catch (Exception ex)
+            {
+                utils.createlogFile(ex.Message);
+                response.Add("Error", "Hubo un problema al validar paciente.");
+                return StatusCode(500, response);
+            }
+        }
+        /// <summary>
+        /// Login.
+        /// </summary>
+        /// <param name="request">LoginRequest.</param>
+        /// <returns>A <see cref="Task{TResult}"/> representing the result of the asynchronous operation.</returns>
+        [HttpPost]
         [ActionName("obtenerDiaSinDisponibilidadPorDoctor")]
         [ProducesResponseType<List<HorasAgendadasDoctorModel>>(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

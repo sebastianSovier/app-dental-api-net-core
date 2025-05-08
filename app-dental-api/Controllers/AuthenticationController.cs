@@ -96,7 +96,7 @@ namespace app_dental_api.Controllers
                 if (!(request.rut == usuario.rut + usuario.dv) || !(utils.ComparePassword(request.password, password.contrasena!)))
                 {
                     response.Add("Error", "Invalid username or password");
-                    return StatusCode(401, response);
+                    return StatusCode(403, response);
                 }
                 string token = await Task.Run(() => utils.GenerateJwtToken(request.rut, "Paciente", _config));
                 return Ok(new LoginResponse()
@@ -264,7 +264,7 @@ namespace app_dental_api.Controllers
                 if (usuario.rut == null && usuario1.rut == null)
                 {
                     response.Add("Error", "Invalid username or password");
-                    return StatusCode(401, response);
+                    return StatusCode(403, response);
                 }
 
                 if (usuario.rut == null)
@@ -287,7 +287,7 @@ namespace app_dental_api.Controllers
                 if (!(request.rut == usuario.rut + usuario.dv) || !(utils.ComparePassword(request.password, password.contrasena!)))
                 {
                     response.Add("Error", "Invalid username or password");
-                    return StatusCode(401, response);
+                    return StatusCode(403, response);
                 }
                 if (usuario.id_perfil.Equals("3"))
                 {

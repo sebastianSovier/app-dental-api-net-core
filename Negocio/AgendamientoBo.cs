@@ -128,6 +128,36 @@ namespace Negocio
             return listaAgendamientos;
 
         }
+        public async Task<List<HorasAgendadasDoctorModel>?> ObtenerHorasProximasAgendadasPorDoctor(HorasAgendadasRequestModel request)
+        {
+            request = utils.CleanObject(request);
+            AgendamientoDal agendamientoDal = new AgendamientoDal(_config);
+            LoginBo loginBo = new LoginBo(_config);
+
+            List<HorasAgendadasDoctorModel> listaAgendamientos = await agendamientoDal.obtenerHorasProximasAgendadasPorDoctor(request);
+
+            foreach (var item in listaAgendamientos)
+            {
+                if (request.tipoUsuario.Equals("Profesional"))
+                {
+                    PacienteModel paciente = await loginBo.ObtenerPacienteById(item.id_paciente);
+                    item.apellido_materno = paciente.apellido_materno;
+                    item.apellido_paterno = paciente.apellido_paterno;
+                    item.nombre_paciente = paciente.nombres;
+                }
+                string fechaIso = item.fecha;
+                DateTime fecha = DateTime.Parse(fechaIso);
+                string fechaFormateada = fecha.ToString("dd/MM/yyyy");
+                item.fecha = fechaFormateada;
+
+
+            }
+            List<HorasAgendadasDoctorModel> citasOrdenadas = listaAgendamientos
+           .OrderBy(c => DateTime.ParseExact($"{c.fecha} {c.hora}", "dd/MM/yyyy HH:mm", CultureInfo.InvariantCulture))
+           .ToList();
+            return listaAgendamientos;
+
+        }
         public async Task<List<HorasAgendadasDoctorModel>?> ObtenerDiaSinDisponibilidadPorDoctor(HorasAgendadasRequestModel request)
         {
             request = utils.CleanObject(request);

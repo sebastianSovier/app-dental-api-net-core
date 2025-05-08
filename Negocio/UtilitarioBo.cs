@@ -107,7 +107,8 @@ namespace Negocio
         { 1, p => Convert.ToInt32(p.puntualidad) + Convert.ToInt32(p.claridad) },                  // Prevención    
         { 2, p => Convert.ToInt32(p.nivel_satisfaccion) + Convert.ToInt32(p.recomendacion) },      // Molestias    
         { 3, p => Convert.ToInt32(p.empatia) + Convert.ToInt32(p.claridad) },                      // Sensibilidad  
-        { 4, p => Convert.ToInt32(p.cordialidad) + Convert.ToInt32(p.empatia) }                    // Estético    
+        { 4, p => Convert.ToInt32(p.cordialidad) + Convert.ToInt32(p.empatia) },                // Estético    
+        { 5, p => Convert.ToInt32(p.claridad) + Convert.ToInt32(p.empatia) }                    // Ninguno    
     };
 
             AgregarPuntajePorPregunta(respuestas, 1, pregunta1Map, puntuacion, ref score);
@@ -126,12 +127,13 @@ namespace Negocio
         { 1, p => Convert.ToInt32(p.claridad) },                                                         // Mal aliento
         { 2, p => Convert.ToInt32(p.puntualidad) },                                                      // Sarro
         { 3, p => Convert.ToInt32(p.nivel_satisfaccion) + Convert.ToInt32(p.recomendacion) },            // Caries
-        { 4, p => Convert.ToInt32(p.cordialidad) + Convert.ToInt32(p.empatia) }                          // Mejorar sonrisa
+        { 4, p => Convert.ToInt32(p.cordialidad) + Convert.ToInt32(p.empatia) },                          // Mejorar sonrisa
+        { 5, p => Convert.ToInt32(p.claridad) + Convert.ToInt32(p.empatia) }                          // Mejorar sonrisa
     };
 
             AgregarPuntajePorPregunta(respuestas, 4, pregunta4Map, puntuacion, ref score);
 
-            // Pregunta 5 – Tratamiento integral
+            // Pregunta 5 – Tratamiento integral menos invasivo
             if (TieneRespuesta(respuestas, 5, 1))
                 score += Convert.ToInt32(puntuacion.claridad) + Convert.ToInt32(puntuacion.recomendacion);
 
