@@ -114,12 +114,12 @@ namespace Datos
             {
                 MySqlCommand cmd = new MySqlCommand();
                 cmd.Connection = conexion;
-                cmd.CommandText = "INSERT INTO `sistemaodontologico`.`contrasena_profesional` (`id_profesional`, `password`) VALUES (?id_profesional, ?password);";
+                cmd.CommandText = "INSERT INTO `sistemaodontologico`.`contrasena_profesional` (`id_profesional`, `contrasena`) VALUES (?id_profesional, ?contrasena);";
 
                 cmd.Parameters.Add("?id_profesional", MySqlDbType.VarChar).Value = usuarioRequest.id_profesional;
-                cmd.Parameters.Add("?password", MySqlDbType.VarChar).Value = usuarioRequest.contrasena;
+                cmd.Parameters.Add("?contrasena", MySqlDbType.VarChar).Value = usuarioRequest.contrasena;
 
-                cmd.ExecuteNonQueryAsync();
+                await cmd.ExecuteNonQueryAsync();
                 return true;
             }
             catch (Exception ex)

@@ -427,7 +427,7 @@ namespace app_dental_api.Controllers
             var perfil = User.FindFirst(ClaimTypes.Role)?.Value;
             try
             {
-                administrador = await Login.ObtenerProfesional(username);
+                administrador = await Login.ObtenerAdministrador(username);
                 if (administrador.nombres != null && administrador.id_perfil.Equals("3"))
                 {
                     if (perfil.Equals("Administrador"))
@@ -436,7 +436,6 @@ namespace app_dental_api.Controllers
                         if (usuario.nombres == null)
                         {
                             long idGenerado = await Login.CrearProfesional(request);
-                            ProfesionalModel usuarioResp = await Login.ObtenerProfesional(request.rut!);
                             PasswordProfesionalModel passwordRequest = new PasswordProfesionalModel();
                             passwordRequest.id_profesional = idGenerado;
                             passwordRequest.contrasena = request.rut;

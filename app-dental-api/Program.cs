@@ -64,7 +64,7 @@ builder.Services.AddAntiforgery(options =>
 builder.WebHost.ConfigureKestrel(options =>
 {
     options.Limits.MaxRequestBodySize = 50 * 1024 * 1024;
-    options.Configure(builder.Configuration.GetSection("Kestrel"));
+    // options.Configure(builder.Configuration.GetSection("Kestrel"));
 
 
     options.AddServerHeader = false;
@@ -172,10 +172,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
 if (!app.Environment.IsDevelopment())
 {
     app.UseHsts();
+    app.UseHttpsRedirection();
+
 }
 
 app.MapControllers();

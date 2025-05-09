@@ -145,7 +145,7 @@ namespace Datos
                 List<ObtenerAgendamientoPacienteModel> listAgendamientos = new List<ObtenerAgendamientoPacienteModel>();
                 MySqlCommand cmd = new MySqlCommand();
                 cmd.Connection = conexion;
-                cmd.CommandText = $"select a.id_agendamiento,a.fecha,e.consulta_realizada,a.hora,p.id_profesional,p.nombres,p.apellido_paterno,p.apellido_materno,p.id_especialidad from agendamiento a join profesional p  on a.id_profesional = p.id_profesional join estado_agendamiento e  on e.id_agendamiento = a.id_agendamiento  where a.id_paciente  = ?paciente_id and e.consulta_realizada = '1' and a.fecha < CURDATE() OR (a.fecha = CURDATE() AND a.hora < CURTIME()) order by id_paciente;";
+                cmd.CommandText = $"select a.id_agendamiento,a.fecha,e.consulta_realizada,a.hora,p.id_profesional,p.nombres,p.apellido_paterno,p.apellido_materno,p.id_especialidad from agendamiento a join profesional p  on a.id_profesional = p.id_profesional join estado_agendamiento e  on e.id_agendamiento = a.id_agendamiento  where a.id_paciente  = ?paciente_id and e.consulta_realizada = '1' and (a.fecha < CURDATE() OR (a.fecha = CURDATE() AND a.hora < CURTIME())) order by id_paciente;";
                 cmd.Parameters.Add("?paciente_id", MySqlDbType.VarChar).Value = paciente_id;
                 using var reader = await cmd.ExecuteReaderAsync();
 
@@ -631,7 +631,7 @@ namespace Datos
                 List<HorasAgendadasDoctorModel> listAgendamientos = new List<HorasAgendadasDoctorModel>();
                 MySqlCommand cmd = new MySqlCommand();
                 cmd.Connection = conexion;
-                cmd.CommandText = $"select e.estado,a.id_agendamiento,e.consulta_realizada,a.id_paciente,a.fecha,a.hora,a.id_profesional from agendamiento a join estado_agendamiento e  on e.id_agendamiento = a.id_agendamiento   where a.id_profesional = ?id_profesional AND a.fecha > CURDATE()  OR (a.fecha = CURDATE() AND a.hora > CURTIME()) and fecha <= ?fechaHasta order by a.id_agendamiento;";
+                cmd.CommandText = $"select e.estado,a.id_agendamiento,e.consulta_realizada,a.id_paciente,a.fecha,a.hora,a.id_profesional from agendamiento a join estado_agendamiento e  on e.id_agendamiento = a.id_agendamiento   where a.id_profesional = ?id_profesional AND (a.fecha > CURDATE()  OR (a.fecha = CURDATE() AND a.hora > CURTIME())) and fecha <= ?fechaHasta order by a.id_agendamiento;";
                 cmd.Parameters.Add("?id_profesional", MySqlDbType.VarChar).Value = request.id_profesional;
                 DateTime fechaDesde = DateTime.ParseExact(request.fechaDesde, "dd/MM/yyyy", CultureInfo.InvariantCulture);
                 cmd.Parameters.Add("?fechaDesde", MySqlDbType.Date).Value = fechaDesde;
@@ -811,7 +811,7 @@ namespace Datos
                 List<HorasAgendadasDoctorModel> listAgendamientos = new List<HorasAgendadasDoctorModel>();
                 MySqlCommand cmd = new MySqlCommand();
                 cmd.Connection = conexion;
-                cmd.CommandText = $"select a.id_agendamiento,e.consulta_realizada,a.id_paciente,a.fecha,a.hora,a.id_profesional from agendamiento a join estado_agendamiento e  on e.id_agendamiento = a.id_agendamiento   where a.id_profesional = ?id_profesional AND a.fecha < CURDATE() OR (a.fecha = CURDATE() AND a.hora < CURTIME()) order by a.id_agendamiento;";
+                cmd.CommandText = $"select a.id_agendamiento,e.consulta_realizada,a.id_paciente,a.fecha,a.hora,a.id_profesional from agendamiento a join estado_agendamiento e  on e.id_agendamiento = a.id_agendamiento   where a.id_profesional = ?id_profesional AND (a.fecha < CURDATE() OR (a.fecha = CURDATE() AND a.hora < CURTIME())) order by a.id_agendamiento;";
                 cmd.Parameters.Add("?id_profesional", MySqlDbType.VarChar).Value = request.id_profesional;
                 DateTime fechaDesde = DateTime.ParseExact(request.fechaDesde, "dd/MM/yyyy", CultureInfo.InvariantCulture);
                 cmd.Parameters.Add("?fechaDesde", MySqlDbType.Date).Value = fechaDesde;
