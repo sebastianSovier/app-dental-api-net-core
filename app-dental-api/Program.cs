@@ -1,6 +1,7 @@
 using app_dental_api.ConfigurationInjection;
 using app_dental_api.Middlewares;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.IdentityModel.Tokens;
 using System.Globalization;
@@ -62,8 +63,8 @@ builder.Services.AddAntiforgery(options =>
 
 builder.WebHost.ConfigureKestrel(options =>
 {
-
-    //options.Configure(builder.Configuration.GetSection("Kestrel"));
+    options.Limits.MaxRequestBodySize = 50 * 1024 * 1024;
+    options.Configure(builder.Configuration.GetSection("Kestrel"));
 
 
     options.AddServerHeader = false;
@@ -75,8 +76,8 @@ builder.Services
                 {
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
-                        ValidateIssuer = false,
-                        ValidateAudience = false,
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
                         ValidIssuer = builder.Configuration["JwtIssuer"],
@@ -110,12 +111,19 @@ app.UseRequestLocalization(
     });
 app.UseCors(corsPolicy);
 
-app.UseExceptionHandler(new ExceptionHandlerOptions
+app.UseExceptionHandler(errorApp =>
 {
-    ExceptionHandlingPath = "/error",
-    AllowStatusCode404Response = true
-});
+    errorApp.Run(async context =>
+    {
+        context.Response.StatusCode = 500;
+        context.Response.ContentType = "application/json";
 
+        var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
+        var error = new { error = "Ocurrió un error", detail = exceptionHandlerPathFeature?.Error.Message };
+
+        await context.Response.WriteAsJsonAsync(error);
+    });
+});
 // Seguridad antes que nada
 app.Use(async (context, next) =>
 {
@@ -125,9 +133,11 @@ app.Use(async (context, next) =>
     context.Response.Headers.Append("X-XSS-Protection", "1; mode=block");
     context.Response.Headers.Remove("Server");
     context.Response.Headers.Remove("X-Powered-By");
-
+    context.Response.Headers["Referrer-Policy"] = "no-referrer";
+    context.Response.Headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()";
+    context.Response.Headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains; preload";
     var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>();
-    var origin = context.Request.Headers["Origin"].FirstOrDefault();
+    var origin = context.Request.Headers.Origin.FirstOrDefault();
 
     if (!string.IsNullOrEmpty(origin) && allowedOrigins != null && !allowedOrigins.Contains(origin))
     {
@@ -162,8 +172,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-//app.UseHttpsRedirection();
-
+app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHsts();
+}
 
 app.MapControllers();
 
