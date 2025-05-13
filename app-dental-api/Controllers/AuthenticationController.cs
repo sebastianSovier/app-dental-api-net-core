@@ -109,7 +109,7 @@ namespace app_dental_api.Controllers
             }
             catch (Exception ex)
             {
-                utils.createlogFile(ex.Message);
+                await utils.CreateLogFileAsync(ex.Message);
                 response.Add("Error", "Hubo un problema al validar paciente.");
                 return StatusCode(500, response);
             }
@@ -167,11 +167,12 @@ namespace app_dental_api.Controllers
                     }
                     else
                     {
+                        string tokens = await Task.Run(() => utils.GenerateJwtToken(request.rut, "Paciente", _config));
                         return Ok(new LoginResponse()
                         {
-                            access_Token = "",
-                            auth = false,
-                            id = 0,
+                            access_Token = tokens,
+                            auth = true,
+                            id = 1,
                             login = false,
                             message = "Cree contraseña para continuar."
                         });
@@ -192,7 +193,7 @@ namespace app_dental_api.Controllers
             }
             catch (Exception ex)
             {
-                utils.createlogFile(ex.Message);
+                await utils.CreateLogFileAsync(ex.Message);
                 response.Add("Error", "Hubo un problema al validar paciente.");
                 return StatusCode(500, response);
             }
@@ -229,7 +230,7 @@ namespace app_dental_api.Controllers
             }
             catch (Exception ex)
             {
-                utils.createlogFile(ex.Message);
+                await utils.CreateLogFileAsync(ex.Message);
                 response.Add("Error", "Hubo un problema al obtener datos paciente.");
                 return StatusCode(500, response);
             }
@@ -308,7 +309,7 @@ namespace app_dental_api.Controllers
             }
             catch (Exception ex)
             {
-                utils.createlogFile(ex.Message);
+                await utils.CreateLogFileAsync(ex.Message);
                 response.Add("Error", "Hubo un problema al validar profesional.");
                 return StatusCode(500, response);
             }
@@ -354,7 +355,7 @@ namespace app_dental_api.Controllers
             }
             catch (Exception ex)
             {
-                utils.createlogFile(ex.Message);
+                await utils.CreateLogFileAsync(ex.Message);
                 response.Add("Error", "Hubo un problema al crear paciente.");
                 return StatusCode(500, response);
             }
@@ -405,7 +406,7 @@ namespace app_dental_api.Controllers
             }
             catch (Exception ex)
             {
-                utils.createlogFile(ex.Message);
+                await utils.CreateLogFileAsync(ex.Message);
                 response.Add("Error", "Hubo un problema al crear paciente.");
                 return StatusCode(500, response);
             }
@@ -462,7 +463,7 @@ namespace app_dental_api.Controllers
             }
             catch (Exception ex)
             {
-                utils.createlogFile(ex.Message);
+                await utils.CreateLogFileAsync(ex.Message);
                 response.Add("Error", "Hubo un problema al crear profesional.");
                 return StatusCode(500, response);
             }
@@ -545,7 +546,7 @@ namespace app_dental_api.Controllers
             }
             catch (Exception ex)
             {
-                utils.createlogFile(ex.Message);
+                await utils.CreateLogFileAsync(ex.Message);
                 response.Add("Error", "Hubo un problema.");
                 return StatusCode(500, response);
             }
@@ -612,7 +613,7 @@ namespace app_dental_api.Controllers
             }
             catch (Exception ex)
             {
-                utils.createlogFile(ex.Message);
+                await utils.CreateLogFileAsync(ex.Message);
                 response.Add("Error", "Hubo un problema.");
                 return StatusCode(500, response);
             }
@@ -687,7 +688,7 @@ namespace app_dental_api.Controllers
             }
             catch (Exception ex)
             {
-                utils.createlogFile(ex.Message);
+                await utils.CreateLogFileAsync(ex.Message);
                 response.Add("Error", "Hubo un problema.");
                 return StatusCode(500, response);
             }

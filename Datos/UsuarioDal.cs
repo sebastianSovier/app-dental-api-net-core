@@ -55,7 +55,7 @@ namespace Datos
             catch (Exception ex)
             {
 
-                utils.createlogFile(ex.Message); throw;
+                await utils.CreateLogFileAsync(ex.Message); throw;
             }
             finally
             {
@@ -98,7 +98,7 @@ namespace Datos
             catch (Exception ex)
             {
 
-                utils.createlogFile(ex.Message); throw;
+                await utils.CreateLogFileAsync(ex.Message); throw;
             }
             finally
             {
@@ -144,7 +144,7 @@ namespace Datos
             catch (Exception ex)
             {
 
-                utils.createlogFile(ex.Message); throw;
+                await utils.CreateLogFileAsync(ex.Message); throw;
             }
             finally
             {
@@ -190,7 +190,7 @@ namespace Datos
             catch (Exception ex)
             {
 
-                utils.createlogFile(ex.Message); throw;
+                await utils.CreateLogFileAsync(ex.Message); throw;
             }
             finally
             {
@@ -232,7 +232,7 @@ namespace Datos
             catch (Exception ex)
             {
 
-                utils.createlogFile(ex.Message); throw;
+                await utils.CreateLogFileAsync(ex.Message); throw;
             }
             finally
             {
@@ -274,7 +274,7 @@ namespace Datos
             catch (Exception ex)
             {
 
-                utils.createlogFile(ex.Message); throw;
+                await utils.CreateLogFileAsync(ex.Message); throw;
             }
             finally
             {
@@ -315,7 +315,7 @@ namespace Datos
             catch (Exception ex)
             {
 
-                utils.createlogFile(ex.Message); throw;
+                await utils.CreateLogFileAsync(ex.Message); throw;
             }
             finally
             {
@@ -356,7 +356,7 @@ namespace Datos
             catch (Exception ex)
             {
 
-                utils.createlogFile(ex.Message); throw;
+                await utils.CreateLogFileAsync(ex.Message); throw;
             }
             finally
             {
@@ -379,7 +379,7 @@ namespace Datos
             catch (Exception ex)
             {
 
-                utils.createlogFile(ex.Message); throw;
+                await utils.CreateLogFileAsync(ex.Message); throw;
             }
             finally
             {
@@ -402,7 +402,7 @@ namespace Datos
             catch (Exception ex)
             {
 
-                utils.createlogFile(ex.Message); throw;
+                await utils.CreateLogFileAsync(ex.Message); throw;
             }
             finally
             {
@@ -426,7 +426,7 @@ namespace Datos
             catch (Exception ex)
             {
 
-                utils.createlogFile(ex.Message); throw;
+                await utils.CreateLogFileAsync(ex.Message); throw;
             }
             finally
             {
@@ -450,7 +450,7 @@ namespace Datos
             catch (Exception ex)
             {
 
-                utils.createlogFile(ex.Message); throw;
+                await utils.CreateLogFileAsync(ex.Message); throw;
             }
             finally
             {
@@ -476,7 +476,7 @@ namespace Datos
             catch (Exception ex)
             {
 
-                utils.createlogFile(ex.Message); throw;
+                await utils.CreateLogFileAsync(ex.Message); throw;
             }
             finally
             {
@@ -509,7 +509,7 @@ namespace Datos
             catch (Exception ex)
             {
 
-                utils.createlogFile(ex.Message); throw;
+                await utils.CreateLogFileAsync(ex.Message); throw;
             }
             finally
             {
@@ -549,7 +549,7 @@ namespace Datos
             catch (Exception ex)
             {
 
-                utils.createlogFile(ex.Message); throw;
+                await utils.CreateLogFileAsync(ex.Message); throw;
             }
             finally
             {
@@ -589,7 +589,7 @@ namespace Datos
             catch (Exception ex)
             {
 
-                utils.createlogFile(ex.Message); throw;
+                await utils.CreateLogFileAsync(ex.Message); throw;
             }
             finally
             {
@@ -629,7 +629,7 @@ namespace Datos
             catch (Exception ex)
             {
 
-                utils.createlogFile(ex.Message); throw;
+                await utils.CreateLogFileAsync(ex.Message); throw;
             }
             finally
             {
@@ -663,7 +663,7 @@ namespace Datos
             catch (Exception ex)
             {
 
-                utils.createlogFile(ex.Message); throw;
+                await utils.CreateLogFileAsync(ex.Message); throw;
             }
             finally
             {
@@ -698,7 +698,7 @@ namespace Datos
             catch (Exception ex)
             {
 
-                utils.createlogFile(ex.Message); throw;
+                await utils.CreateLogFileAsync(ex.Message); throw;
             }
             finally
             {

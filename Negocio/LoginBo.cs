@@ -74,6 +74,8 @@ namespace Negocio
         }
         public void GuardarRespuestasIniciales(RespuestasInicialesModel respuestasInicialesModel)
         {
+            respuestasInicialesModel = util.CleanObject(respuestasInicialesModel);
+
             PacienteModel usuario = new PacienteModel();
             UsuarioDal usuarioDal = new UsuarioDal(_config);
             usuarioDal.GuardarRespuestasPersonales(util.CleanObject(respuestasInicialesModel));
@@ -145,6 +147,8 @@ namespace Negocio
         }
         public async Task<long> CrearProfesional(ProfesionalModel usuarioRequest)
         {
+            usuarioRequest = util.CleanObject(usuarioRequest);
+
             UsuarioDal usuarioDal = new UsuarioDal(_config);
             usuarioRequest.dv = util.getDv(usuarioRequest.rut);
             usuarioRequest.rut = util.getRutWithoutDv(usuarioRequest.rut);

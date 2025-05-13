@@ -29,7 +29,7 @@ namespace Negocio
             foreach (var item in listaAgendamientos)
             {
                 string fechaIso = item.fecha;
-                DateTime fecha = DateTime.Parse(fechaIso); // O usa DateTime.ParseExact si quieres mayor control
+                DateTime fecha = DateTime.Parse(fechaIso);
                 string fechaFormateada = fecha.ToString("dd/MM/yyyy");
                 item.fecha = fechaFormateada;
                 item.especialidad = listEpecialidades.Find(x => x.id_especialidad == item.id_especialidad)!.descripcion_especialidad;
@@ -77,7 +77,7 @@ namespace Negocio
             HorasAgendadasDoctorModel agendamiento = await agendamientoDal.obtenerAgendamientoPorId(request.id_agendamiento.ToString());
             PacienteModel paciente = await loginBo.ObtenerPacienteById(agendamiento.id_paciente.ToString());
             ProfesionalModel profesional = await usuarioDal.ObtenerDoctorById(agendamiento.id_profesional);
-            await agendamientoDal.EliminarAgendamientoPaciente(request.id_agendamiento, request.id_paciente);
+            await agendamientoDal.EliminarAgendamientoPaciente(request.id_agendamiento, agendamiento.id_paciente);
             await emailService.SendEmailAsync(paciente.correo, "cita médica cancelada", $"<b>Cita eliminada con el Doctor {profesional.nombres} {profesional.apellido_paterno} {profesional.apellido_materno} , a las {agendamiento.hora} , el dia {agendamiento.fecha} , por favor agende nuevamente.</ b >");
 
             return true;
@@ -221,6 +221,7 @@ namespace Negocio
         }
         public async Task<bool> CrearAgendamiento(CrearAgendamientoModel agendamientoRequest, string correo)
         {
+            agendamientoRequest = utils.CleanObject(agendamientoRequest);
             AgendamientoDal agendamientoDal = new AgendamientoDal(_config);
             UsuarioDal usuarioDal = new UsuarioDal(_config);
             LoginBo loginBo = new LoginBo(_config);
@@ -245,6 +246,7 @@ namespace Negocio
 
         public async Task<bool> ModificarAgendamientoPorProfesional(ModificarAgendamientoProfesionalModel agendamientoRequest)
         {
+            agendamientoRequest = utils.CleanObject(agendamientoRequest);
             AgendamientoDal agendamientoDal = new AgendamientoDal(_config);
             UsuarioDal usuarioDal = new UsuarioDal(_config);
             LoginBo loginBo = new LoginBo(_config);
@@ -288,6 +290,7 @@ namespace Negocio
 
         public async Task<bool> ModificarAgendamiento(ModificarAgendamientoModel agendamientoRequest, string correo)
         {
+            agendamientoRequest = utils.CleanObject(agendamientoRequest);
             AgendamientoDal agendamientoDal = new AgendamientoDal(_config);
             UsuarioDal usuarioDal = new UsuarioDal(_config);
             LoginBo loginBo = new LoginBo(_config);
@@ -305,6 +308,8 @@ namespace Negocio
         }
         public async Task<bool> ModificarDerivacionAgendamiento(ModificarAgendamientoModel agendamientoRequest, string correo)
         {
+            agendamientoRequest = utils.CleanObject(agendamientoRequest);
+
             AgendamientoDal agendamientoDal = new AgendamientoDal(_config);
             UsuarioDal usuarioDal = new UsuarioDal(_config);
             LoginBo loginBo = new LoginBo(_config);
@@ -322,6 +327,8 @@ namespace Negocio
         }
         public async Task<bool> CrearPuntuacionAtencionDoctor(CrearPuntuacionAtencionDoctorModel crearPuntuacionRequest)
         {
+            crearPuntuacionRequest = utils.CleanObject(crearPuntuacionRequest);
+
             AgendamientoDal agendamientoDal = new AgendamientoDal(_config);
             LoginBo loginBo = new LoginBo(_config);
 
@@ -354,6 +361,8 @@ namespace Negocio
         }
         public async Task<bool> CargarImagenesExamenes(List<CargarImagenExamenModel> cargarImagenExamenModel, string id_agendamiento)
         {
+            cargarImagenExamenModel = utils.CleanObject(cargarImagenExamenModel);
+
             AgendamientoDal agendamientoDal = new AgendamientoDal(_config);
             LoginBo loginBo = new LoginBo(_config);
 
@@ -403,6 +412,8 @@ namespace Negocio
 
         public async Task<bool> CrearConsultaMedica(GuardarConsultaMedicaModel consultaMedicaRequest, string rut_profesional)
         {
+            consultaMedicaRequest = utils.CleanObject(consultaMedicaRequest);
+
             AgendamientoDal agendamientoDal = new AgendamientoDal(_config);
             LoginBo loginBo = new LoginBo(_config);
             EmailService emailService = new EmailService(_config);

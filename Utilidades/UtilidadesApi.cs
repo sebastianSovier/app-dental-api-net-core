@@ -1,12 +1,9 @@
-﻿using ExcelDataReader;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Modelo;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
-using System.Data;
-using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Reflection;
 using System.Security.Claims;
@@ -70,110 +67,44 @@ namespace Utilidades
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
-        public int? ValidateToken(string token, IConfiguration _config)
+        public async Task CreateLogFileAsync(string logMessage)
         {
-            if (token == null)
-                return null;
+            string logFileName = $"Log-{DateTime.Now:dd-MM-yyyy}.txt";
+            string logFilePath = Path.Combine("logs", logFileName);
 
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_config["JwtKey"]!);
-            try
+            Directory.CreateDirectory("logs");
+
+            await using (StreamWriter w = File.AppendText(logFilePath))
             {
-                tokenHandler.ValidateToken(token, new TokenValidationParameters
-                {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(key),
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
-                    // set clockskew to zero so tokens expire exactly at token expiration time (instead of 5 minutes later)
-                    ClockSkew = TimeSpan.Zero
-                }, out SecurityToken validatedToken);
-
-                var jwtToken = (JwtSecurityToken)validatedToken;
-                var userId = int.Parse(jwtToken.Claims.First(x => x.Type == "id").Value);
-
-                // return user id from JWT token if validation successful
-                return userId;
+                await WriteLogAsync(logMessage, w);
             }
-            catch
+
+            using (StreamReader r = File.OpenText(logFilePath))
             {
-                // return null if validation fails
-                return null;
+                await PrintLogAsync(r);
             }
         }
-        public void createlogFile(string logMessage)
-        {
-            using (StreamWriter w = File.AppendText("logs//Log-" + DateTime.Now.ToString("dd-MM-yyyy", CultureInfo.InvariantCulture) + ".txt"))
-            {
-                WriteLog(logMessage, w);
-            }
 
-            using (StreamReader r = File.OpenText("logs//Log-" + DateTime.Now.ToString("dd-MM-yyyy", CultureInfo.InvariantCulture) + ".txt"))
-            {
-                ImprmLog(r);
-                Console.WriteLine(logMessage);
-            }
-        }
-        public static void WriteLog(string logMessage, TextWriter w)
+        public static async Task WriteLogAsync(string logMessage, TextWriter w)
         {
-            w.Write("\r\nLog Entry : ");
-            w.WriteLine($"{DateTime.Now.ToLongTimeString()} {DateTime.Now.ToLongDateString()}");
-            w.WriteLine("  :");
-            w.WriteLine($"  :{logMessage}");
-            w.WriteLine("-------------------------------");
+            await w.WriteLineAsync();
+            await w.WriteLineAsync($"Log Entry : {DateTime.Now.ToLongTimeString()} {DateTime.Now.ToLongDateString()}");
+            await w.WriteLineAsync("  :");
+            await w.WriteLineAsync($"  :{logMessage}");
+            await w.WriteLineAsync("-------------------------------");
         }
 
-        public static void ImprmLog(StreamReader r)
+        public static async Task PrintLogAsync(StreamReader r)
         {
-            string line;
-            while ((line = r.ReadLine()!) != null)
+            string? line;
+            while ((line = await r.ReadLineAsync()) != null)
             {
                 Console.WriteLine(line);
             }
         }
 
-        public DataTable ConvertExcel(string file)
-        {
-            byte[] byteArray = Convert.FromBase64String(file);
-            using MemoryStream memoryStream = new MemoryStream(byteArray);
-            using BinaryReader binaryReader = new BinaryReader(memoryStream, Encoding.UTF8);
-            byte[] data = binaryReader.ReadBytes(byteArray.Length);
-            Console.WriteLine(BitConverter.ToString(data));
-            Stream stream = new MemoryStream(data);
-            IExcelDataReader reader = ExcelReaderFactory.CreateReader(stream);
-
-            var result = reader.AsDataSet();
-            DataTable dataExcel = result.Tables[0];
-            return dataExcel;
-        }
-        public bool validTimeSession(string fecha_actividad)
-        {
-
-            DateTime utcTime = DateTime.UtcNow;
-            TimeZoneInfo chileTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Pacific SA Standard Time");
-            DateTime chileTime = TimeZoneInfo.ConvertTimeFromUtc(utcTime, chileTimeZone);
-            TimeSpan timeDifference = chileTime - DateTime.Parse(fecha_actividad!);
-            double minutesPassed = timeDifference.TotalMinutes;
-            double secondsPassed = timeDifference.TotalSeconds;
-            if (minutesPassed > 5 || (minutesPassed == 5 && secondsPassed > 0))
-            {
-                return true;
-            }
 
 
-
-            else
-            {
-                return false;
-            }
-        }
-        public string generateRandomNumber()
-        {
-
-            Random rnd = new Random();
-            Int64 number = rnd.NextInt64(1000000000, 9999999999);
-            return number.ToString();
-        }
         public string LimpiaInyection(string valor)
         {
             if (valor != string.Empty)

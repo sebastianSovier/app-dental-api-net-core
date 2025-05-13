@@ -60,7 +60,7 @@ namespace app_dental_api.Controllers
             }
             catch (Exception ex)
             {
-                utils.createlogFile(ex.Message);
+                await utils.CreateLogFileAsync(ex.Message);
                 response.Add("Error", "Hubo un problema al validar paciente.");
                 return StatusCode(500, response);
             }
@@ -96,7 +96,7 @@ namespace app_dental_api.Controllers
             }
             catch (Exception ex)
             {
-                utils.createlogFile(ex.Message);
+                await utils.CreateLogFileAsync(ex.Message);
                 response.Add("Error", "Hubo un problema al validar paciente.");
                 return StatusCode(500, response);
             }
