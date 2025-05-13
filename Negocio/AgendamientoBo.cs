@@ -78,7 +78,10 @@ namespace Negocio
             PacienteModel paciente = await loginBo.ObtenerPacienteById(agendamiento.id_paciente.ToString());
             ProfesionalModel profesional = await usuarioDal.ObtenerDoctorById(agendamiento.id_profesional);
             await agendamientoDal.EliminarAgendamientoPaciente(request.id_agendamiento, agendamiento.id_paciente);
-            await emailService.SendEmailAsync(paciente.correo, "cita médica cancelada", $"<b>Cita eliminada con el Doctor {profesional.nombres} {profesional.apellido_paterno} {profesional.apellido_materno} , a las {agendamiento.hora} , el dia {agendamiento.fecha} , por favor agende nuevamente.</ b >");
+            DateTime fecha = DateTime.ParseExact(agendamiento.fecha, "dd/MM/yyyy HH:mm:ss", CultureInfo.InvariantCulture);
+
+            string fechaFormateada = fecha.ToString("dd/MM/yyyy");
+            await emailService.SendEmailAsync(paciente.correo, "cita médica cancelada", $"<b>Cita eliminada con el Doctor {profesional.nombres} {profesional.apellido_paterno} {profesional.apellido_materno} , a las {agendamiento.hora} , el dia {fechaFormateada} , por favor agende nuevamente.</ b >");
 
             return true;
         }
@@ -94,7 +97,9 @@ namespace Negocio
             ProfesionalModel profesional = await usuarioDal.ObtenerDoctorById(agendamiento.id_profesional);
             EmailService emailService = new EmailService(_config);
 
+            DateTime fecha = DateTime.ParseExact(agendamiento.fecha, "dd/MM/yyyy HH:mm:ss", CultureInfo.InvariantCulture);
 
+            string fechaFormateada = fecha.ToString("dd/MM/yyyy");
             await emailService.SendEmailAsync(paciente.correo, "cita confirmada con éxito", $"<b>Cita confirmada con el Doctor {profesional.nombres} {profesional.apellido_paterno} {profesional.apellido_materno} , a las {agendamiento.hora} , el dia {agendamiento.fecha}</ b >");
             return true;
         }
@@ -237,8 +242,10 @@ namespace Negocio
             HorasAgendadasDoctorModel agendamiento = await agendamientoDal.obtenerAgendamientoPorId(idAgendamiento.ToString());
             ProfesionalModel profesional = await usuarioDal.ObtenerDoctorById(agendamiento.id_profesional);
 
+            DateTime fecha = DateTime.ParseExact(agendamiento.fecha, "dd/MM/yyyy HH:mm:ss", CultureInfo.InvariantCulture);
 
-            await emailService.SendEmailAsync(correo, "cita realizada con éxito", $"<b>cita agendada con el Doctor {profesional.nombres} {profesional.apellido_paterno} {profesional.apellido_materno} , a las {agendamiento.hora} , el dia {agendamiento.fecha}</ b >");
+            string fechaFormateada = fecha.ToString("dd/MM/yyyy");
+            await emailService.SendEmailAsync(correo, "cita realizada con éxito", $"<b>cita agendada con el Doctor {profesional.nombres} {profesional.apellido_paterno} {profesional.apellido_materno} , a las {agendamiento.hora} , el dia {fechaFormateada}</ b >");
             return true;
 
 
@@ -276,8 +283,13 @@ namespace Negocio
 
                 foreach (var item in listaAgendamientos)
                 {
+                    DateTime fecha = DateTime.ParseExact(item.fecha, "dd/MM/yyyy HH:mm:ss", CultureInfo.InvariantCulture);
+
+                    string fechaFormateada = fecha.ToString("dd/MM/yyyy");
+
                     PacienteModel paciente = await loginBo.ObtenerPacienteById(item.id_paciente);
-                    await emailService.SendEmailAsync(paciente.correo, "cita cancelada", $"<b>cita cancelada con el Doctor {profesional.nombres} {profesional.apellido_paterno} {profesional.apellido_materno} , a las {item.hora} , el dia {item.fecha} , por motivos de fuerza mayor , por favor agende su hora nuevamente.</ b >");
+
+                    await emailService.SendEmailAsync(paciente.correo, "cita cancelada", $"<b>cita cancelada con el Doctor {profesional.nombres} {profesional.apellido_paterno} {profesional.apellido_materno} , a las {item.hora} , el dia {fechaFormateada} , por motivos de fuerza mayor , por favor agende su hora nuevamente.</ b >");
 
 
                 }
@@ -300,8 +312,10 @@ namespace Negocio
             agendamientoRequest.id_profesional = profesional.id_profesional.ToString();
             await agendamientoDal.ModificarAgendamiento(agendamientoRequest);
 
+            DateTime fecha = DateTime.ParseExact(agendamiento.fecha, "dd/MM/yyyy HH:mm:ss", CultureInfo.InvariantCulture);
 
-            await emailService.SendEmailAsync(correo, "cita modificada con éxito", $"<b>cita agendada con el Doctor {profesional.nombres} {profesional.apellido_paterno} {profesional.apellido_materno} , a las {agendamiento.hora} , el dia {agendamiento.fecha}</ b >");
+            string fechaFormateada = fecha.ToString("dd/MM/yyyy");
+            await emailService.SendEmailAsync(correo, "cita modificada con éxito", $"<b>cita agendada con el Doctor {profesional.nombres} {profesional.apellido_paterno} {profesional.apellido_materno} , a las {agendamiento.hora} , el dia {fechaFormateada}</ b >");
             return true;
 
 
@@ -319,8 +333,10 @@ namespace Negocio
             agendamientoRequest.id_paciente = agendamiento.id_paciente;
             await agendamientoDal.ModificarDerivacionAgendamiento(agendamientoRequest);
 
+            DateTime fecha = DateTime.ParseExact(agendamiento.fecha, "dd/MM/yyyy HH:mm:ss", CultureInfo.InvariantCulture);
 
-            await emailService.SendEmailAsync(correo, "cita modificada con éxito", $"<b>cita agendada con el Doctor {profesional.nombres} {profesional.apellido_paterno} {profesional.apellido_materno} , a las {agendamiento.hora} , el dia {agendamiento.fecha}</ b >");
+            string fechaFormateada = fecha.ToString("dd/MM/yyyy");
+            await emailService.SendEmailAsync(correo, "cita modificada con éxito", $"<b>cita agendada con el Doctor {profesional.nombres} {profesional.apellido_paterno} {profesional.apellido_materno} , a las {agendamiento.hora} , el dia {fechaFormateada}</ b >");
             return true;
 
 

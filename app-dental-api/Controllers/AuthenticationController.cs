@@ -53,8 +53,6 @@ namespace app_dental_api.Controllers
 
             await Task.CompletedTask;
 
-            // todo: delete session and data session.
-            // todo: define soft or hard delete of data.
             return this.NoContent();
         }
 
