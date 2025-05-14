@@ -308,7 +308,7 @@ namespace Negocio
             LoginBo loginBo = new LoginBo(_config);
             EmailService emailService = new EmailService(_config);
             HorasAgendadasDoctorModel agendamiento = await agendamientoDal.obtenerAgendamientoPorId(agendamientoRequest.id_agendamiento.ToString());
-            ProfesionalModel profesional = await usuarioDal.ObtenerDoctorById(agendamiento.id_profesional);
+            ProfesionalModel profesional = await usuarioDal.ObtenerDoctorById(agendamientoRequest.id_profesional);
             agendamientoRequest.id_profesional = profesional.id_profesional.ToString();
             await agendamientoDal.ModificarAgendamiento(agendamientoRequest);
 
