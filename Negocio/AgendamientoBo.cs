@@ -260,37 +260,37 @@ namespace Negocio
             EmailService emailService = new EmailService(_config);
             DateTime fechaDesde = DateTime.ParseExact(agendamientoRequest.fechaDesde, "dd/MM/yyyy", CultureInfo.InvariantCulture);
             DateTime fechaHasta = DateTime.ParseExact(agendamientoRequest.fechaHasta, "dd/MM/yyyy", CultureInfo.InvariantCulture);
-
             for (var date = fechaDesde; date <= fechaHasta; date = date.AddDays(1))
             {
+                HorasAgendadasRequestModel horasAgendadasRequest = new();
+                horasAgendadasRequest.id_profesional = agendamientoRequest.id_profesional;
+                horasAgendadasRequest.fechaDesde = date.ToString("dd/MM/yyyy");
+                horasAgendadasRequest.fechaHasta = date.ToString("dd/MM/yyyy");
+                List<HorasAgendadasDoctorModel> listaAgendamientos = await agendamientoDal.obtenerHorasAgendadasPorDoctor(horasAgendadasRequest);
+                string inputFormat = "dd/MM/yyyy HH:mm:ss";
+
                 ProfesionalModel profesional = await usuarioDal.ObtenerDoctorById(agendamientoRequest.id_profesional);
                 DateTime horaInicio = DateTime.Today.AddHours(9);
                 DateTime horaFin = DateTime.Today.AddHours(18);
                 agendamientoRequest.fecha = date.ToString("yyyy/MM/dd");
                 for (var hora = horaInicio; hora <= horaFin; hora = hora.AddMinutes(30))
                 {
-                    agendamientoRequest.hora = hora.ToString("HH:mm");
-                    bool idAgendamiento = await agendamientoDal.modificarDisponibilidadPorProfesional(agendamientoRequest);
+                    HorasAgendadasDoctorModel horaEncontrada = listaAgendamientos.Find(x => x.hora == hora.ToString("HH:mm") && DateTime.ParseExact(x.fecha, inputFormat, CultureInfo.InvariantCulture).ToString("dd/MM/yyyy") == date.ToString("dd/MM/yyyy"));
+                    if (horaEncontrada != null && !string.IsNullOrEmpty(horaEncontrada.id_agendamiento))
+                    {
+                        PacienteModel paciente = await loginBo.ObtenerPacienteById(horaEncontrada.id_paciente);
 
+                        agendamientoRequest.hora = hora.ToString("HH:mm");
+                        await agendamientoDal.modificarHoraDisponibilidadPorProfesional(agendamientoRequest);
+                        await agendamientoDal.EliminarAgendamientoPaciente(horaEncontrada.id_agendamiento);
 
-                }
-
-                HorasAgendadasRequestModel horasAgendadasRequest = new();
-                horasAgendadasRequest.id_profesional = agendamientoRequest.id_profesional;
-                horasAgendadasRequest.fechaDesde = date.ToString("dd/MM/yyyy");
-                horasAgendadasRequest.fechaHasta = date.ToString("dd/MM/yyyy");
-                List<HorasAgendadasDoctorModel> listaAgendamientos = await agendamientoDal.obtenerHorasAgendadasPorDoctor(horasAgendadasRequest);
-
-                foreach (var item in listaAgendamientos)
-                {
-                    DateTime fecha = DateTime.ParseExact(item.fecha, "dd/MM/yyyy HH:mm:ss", CultureInfo.InvariantCulture);
-
-                    string fechaFormateada = fecha.ToString("dd/MM/yyyy");
-
-                    PacienteModel paciente = await loginBo.ObtenerPacienteById(item.id_paciente);
-
-                    await emailService.SendEmailAsync(paciente.correo, "cita cancelada", $"<b>cita cancelada con el Doctor {profesional.nombres} {profesional.apellido_paterno} {profesional.apellido_materno} , a las {item.hora} , el dia {fechaFormateada} , por motivos de fuerza mayor , por favor agende su hora nuevamente.</ b >");
-
+                        await emailService.SendEmailAsync(paciente.correo, "cita cancelada", $"<b>cita cancelada con el Doctor {profesional.nombres} {profesional.apellido_paterno} {profesional.apellido_materno} , a las {hora.ToString("HH:mm")} , el dia {date.ToString("dd/MM/yyyy")} , por motivos de fuerza mayor , por favor agende su hora nuevamente.</ b >");
+                    }
+                    else
+                    {
+                        agendamientoRequest.hora = hora.ToString("HH:mm");
+                        bool idAgendamiento = await agendamientoDal.modificarDisponibilidadPorProfesional(agendamientoRequest);
+                    }
 
                 }
 

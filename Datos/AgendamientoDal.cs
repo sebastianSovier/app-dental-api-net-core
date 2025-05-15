@@ -279,6 +279,33 @@ namespace Datos
 
 
         }
+        public async Task<bool> EliminarAgendamientoPaciente(string agendamiento_id)
+        {
+            using MySqlConnection conexion = await mysql!.getConexion("bd1");
+            try
+            {
+                List<ObtenerAgendamientoPacienteModel> listAgendamientos = new List<ObtenerAgendamientoPacienteModel>();
+                MySqlCommand cmd = new MySqlCommand();
+                cmd.Connection = conexion;
+                cmd.CommandText = $"update estado_agendamiento set estado = 'ELIMINADO' where id_agendamiento = ?id_agendamiento;";
+                cmd.Parameters.Add("?id_agendamiento", MySqlDbType.VarChar).Value = agendamiento_id;
+
+                await cmd.ExecuteNonQueryAsync();
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+
+                await utils.CreateLogFileAsync(ex.Message); throw;
+            }
+            finally
+            {
+                await conexion.CloseAsync();
+            }
+
+
+        }
         public async Task<bool> ConsultaRealizada(string agendamiento_id)
         {
             using MySqlConnection conexion = await mysql!.getConexion("bd1");
@@ -783,7 +810,7 @@ namespace Datos
             {
                 MySqlCommand cmd = new MySqlCommand();
                 cmd.Connection = conexion;
-                cmd.CommandText = $"update agendamiento set hora = ?hora where id_profesional = ?id_profesional and fecha = ?fecha ;";
+                cmd.CommandText = $"update agendamiento set id_paciente = NULL where id_profesional = ?id_profesional and fecha = ?fecha and hora = ?hora ;";
                 cmd.Parameters.Add("?id_profesional", MySqlDbType.VarChar).Value = agendamientoRequest.id_profesional;
                 cmd.Parameters.Add("?fecha", MySqlDbType.VarChar).Value = agendamientoRequest.fecha;
                 cmd.Parameters.Add("?hora", MySqlDbType.VarChar).Value = agendamientoRequest.hora;
