@@ -658,7 +658,7 @@ namespace Datos
                 List<HorasAgendadasDoctorModel> listAgendamientos = new List<HorasAgendadasDoctorModel>();
                 MySqlCommand cmd = new MySqlCommand();
                 cmd.Connection = conexion;
-                cmd.CommandText = $"select e.estado,a.id_agendamiento,e.consulta_realizada,a.id_paciente,a.fecha,a.hora,a.id_profesional from agendamiento a join estado_agendamiento e  on e.id_agendamiento = a.id_agendamiento   where a.id_profesional = ?id_profesional AND (a.fecha > CURDATE()  OR (a.fecha = CURDATE() AND a.hora > CURTIME())) and fecha <= ?fechaHasta order by a.id_agendamiento;";
+                cmd.CommandText = $"select e.estado,a.id_agendamiento,e.consulta_realizada,a.id_paciente,a.fecha,a.hora,a.id_profesional from agendamiento a join estado_agendamiento e  on e.id_agendamiento = a.id_agendamiento   where a.id_profesional = ?id_profesional AND (a.fecha > CURDATE()  OR (a.fecha = CURDATE() AND a.hora > CURTIME())) and fecha <= ?fechaHasta and id_paciente is not null order by a.id_agendamiento;";
                 cmd.Parameters.Add("?id_profesional", MySqlDbType.VarChar).Value = request.id_profesional;
                 DateTime fechaDesde = DateTime.ParseExact(request.fechaDesde, "dd/MM/yyyy", CultureInfo.InvariantCulture);
                 cmd.Parameters.Add("?fechaDesde", MySqlDbType.Date).Value = fechaDesde;
