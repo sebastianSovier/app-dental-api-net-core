@@ -1,6 +1,7 @@
 ﻿using Datos;
 using Microsoft.Extensions.Configuration;
 using Modelo;
+using System.Globalization;
 using Utilidades;
 namespace Negocio
 {
@@ -40,6 +41,51 @@ namespace Negocio
         {
             PacienteModel usuario = new PacienteModel();
             UsuarioDal usuarioDal = new UsuarioDal(_config);
+            AgendamientoDal agendamientoDal = new AgendamientoDal(_config);
+            LoginBo loginBo = new LoginBo(_config);
+            ModificarAgendamientoProfesionalModel agendamientoRequest = new();
+            EmailService emailService = new EmailService(_config);
+            agendamientoRequest.id_profesional = util.CleanObject(profesional_id);
+            agendamientoRequest.fechaDesde = DateTime.Now.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture);
+
+            agendamientoRequest.fechaHasta = DateTime.Now
+                                       .AddDays(60)
+                                       .ToString("dd/MM/yyyy",
+                                                 CultureInfo.InvariantCulture);
+            DateTime fechaDesde = DateTime.ParseExact(agendamientoRequest.fechaDesde, "dd/MM/yyyy", CultureInfo.InvariantCulture);
+            DateTime fechaHasta = DateTime.ParseExact(agendamientoRequest.fechaHasta, "dd/MM/yyyy", CultureInfo.InvariantCulture);
+            for (var date = fechaDesde; date <= fechaHasta; date = date.AddDays(1))
+            {
+                HorasAgendadasRequestModel horasAgendadasRequest = new();
+                horasAgendadasRequest.id_profesional = agendamientoRequest.id_profesional;
+                horasAgendadasRequest.fechaDesde = date.ToString("dd/MM/yyyy");
+                horasAgendadasRequest.fechaHasta = date.ToString("dd/MM/yyyy");
+                List<HorasAgendadasDoctorModel> listaAgendamientos = await agendamientoDal.obtenerHorasAgendadasPorDoctor(horasAgendadasRequest);
+                string inputFormat = "dd/MM/yyyy HH:mm:ss";
+
+                ProfesionalModel profesional = await usuarioDal.ObtenerDoctorById(util.CleanObject(profesional_id));
+                DateTime horaInicio = DateTime.Today.AddHours(9);
+                DateTime ahora = DateTime.Now;
+                DateTime horaFin = DateTime.Today.AddHours(18);
+                agendamientoRequest.fecha = date.ToString("yyyy/MM/dd");
+                for (var hora = horaInicio; hora <= horaFin; hora = hora.AddMinutes(30))
+                {
+                    HorasAgendadasDoctorModel horaEncontrada = listaAgendamientos.Find(x => x.hora == hora.ToString("HH:mm") && DateTime.ParseExact(x.fecha, inputFormat, CultureInfo.InvariantCulture).ToString("dd/MM/yyyy") == date.ToString("dd/MM/yyyy"));
+                    if (horaEncontrada != null && !string.IsNullOrEmpty(horaEncontrada.id_agendamiento) && ahora < hora)
+                    {
+                        PacienteModel paciente = await loginBo.ObtenerPacienteById(horaEncontrada.id_paciente);
+
+
+                        await agendamientoDal.EliminarAgendamientoPaciente(horaEncontrada.id_agendamiento);
+
+                        await emailService.SendEmailAsync(paciente.correo, "cita cancelada", $"<b>cita cancelada con el Doctor {profesional.nombres} {profesional.apellido_paterno} {profesional.apellido_materno} , a las {hora.ToString("HH:mm")} , el dia {date.ToString("dd/MM/yyyy")} , por motivos de fuerza mayor , por favor agende su hora nuevamente.</ b >");
+
+                    }
+
+                }
+
+            }
+
             return await usuarioDal.EliminarProfesional(util.CleanObject(profesional_id));
 
         }
