@@ -7,6 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Globalization;
 using System.Text;
 using System.Text.Json.Serialization;
+using Utilidades;
 
 
 const string corsPolicy = "_appdentalapiOrigin";
@@ -88,6 +89,7 @@ builder.Services
 
 
 builder.Services.AddAuthorization();
+builder.Services.AddSingleton<UtilidadesApiss>();
 
 var app = builder.Build();
 var culture = CultureInfo.CreateSpecificCulture("es-CL");
@@ -169,7 +171,10 @@ if (builder.Configuration["UseEncrypt"] == "true")
     var encryptionService = new EncryptionService(builder.Configuration["KeyCripto"]);
 
 
-    app.UseMiddleware<EncryptionMiddleware>(encryptionService);
+    app.UseMiddleware<AntiforgeryMiddleware>();
+    app.UseMiddleware<RequestDecryptionMiddleware>(encryptionService);
+    app.UseMiddleware<JsonSanitizationMiddleware>();
+    app.UseMiddleware<ResponseEncryptionMiddleware>(encryptionService);
 }
 
 if (app.Environment.IsDevelopment())

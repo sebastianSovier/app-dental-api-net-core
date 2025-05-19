@@ -393,7 +393,7 @@ namespace Negocio
             {
                 return false;
             }
-            await agendamientoDal.deleteImagenesConsulta(idConsultaMedica);
+            //await agendamientoDal.deleteImagenesConsulta(idConsultaMedica);
             foreach (var item in cargarImagenExamenModel)
             {
                 item.id_consulta_medica = idConsultaMedica;
