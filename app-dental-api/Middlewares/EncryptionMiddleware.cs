@@ -1,38 +1,30 @@
-﻿// <copyright file="EncryptionMiddleware.cs" company="NeoSolTec Spa">
-// Copyright (c) NeoSolTec Spa. All rights reserved.
-// Licensed under the MIT license.
-// See LICENSE file in the project root for full license information.
-// More info about MIT license in https://opensource.org/license/mit
-// </copyright>
-
-namespace app_dental_api.Middlewares;
+﻿namespace app_dental_api.Middlewares;
 
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Http;
 using System.IO;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Utilidades;
 
-#pragma warning disable SA1600 // Elements should be documented
 public class EncryptionMiddleware
-#pragma warning restore SA1600 // Elements should be documented
 {
+    private readonly EncryptionService encryptionService;
     private readonly RequestDelegate next;
     private readonly IAntiforgery antiforgery;
     private readonly ILogger<EncryptionMiddleware> logger;
     private readonly UtilidadesApiss utils = new UtilidadesApiss();
-#pragma warning disable SA1600 // Elements should be documented
-    public EncryptionMiddleware(RequestDelegate next, IAntiforgery antiforgery, ILogger<EncryptionMiddleware> logger)
-#pragma warning restore SA1600 // Elements should be documented
+    public EncryptionMiddleware(RequestDelegate next, IAntiforgery antiforgery, ILogger<EncryptionMiddleware> logger,
+        EncryptionService encryptionService)
     {
         this.next = next;
         this.antiforgery = antiforgery;
+        this.encryptionService = encryptionService;
         this.logger = logger;
     }
 
-#pragma warning disable SA1600 // Elements should be documented
     public async Task Invoke(HttpContext context)
-#pragma warning restore SA1600 // Elements should be documented
     {
         if (this.IsExcludedPath(context.Request.Path))
         {
@@ -42,7 +34,6 @@ public class EncryptionMiddleware
 
         try
         {
-
             if (context.Request.Method.Equals(HttpMethods.Post) || context.Request.Method.Equals(HttpMethods.Put))
             {
                 var excludedPaths = new HashSet<string>
@@ -85,7 +76,7 @@ public class EncryptionMiddleware
                 }
             }
 
-            int maxRequestBodySize = 1024 * 1024; // 1 MB
+            int maxRequestBodySize = 1024 * 1024;
             if (context.Request.Path.Equals("/api/Profesional/cargarImagenExamen"))
             {
                 maxRequestBodySize = 50 * 1024 * 1024;
@@ -97,33 +88,41 @@ public class EncryptionMiddleware
                 return;
             }
 
-            context.Request.EnableBuffering(); // permite leer el body varias veces
+            var decryptedStream = await DecryptRequestBody(context.Request);
+            if (decryptedStream == Stream.Null) return;
+            context.Request.Body = decryptedStream;
+            context.Request.Body.Position = 0;
+
+            context.Request.EnableBuffering();
             using var reader = new StreamReader(context.Request.Body, leaveOpen: true);
             var body = await reader.ReadToEndAsync();
-            context.Request.Body.Position = 0; // vuelve al inicio
+            context.Request.Body.Position = 0;
 
             if (!string.IsNullOrEmpty(body))
             {
                 try
                 {
-                    var json = System.Text.Json.JsonDocument.Parse(body);
-
+                    var json = JsonDocument.Parse(body);
                     var cleanedJson = CleanJson(json.RootElement);
+                    var cleanedBody = JsonSerializer.Serialize(cleanedJson);
 
-                    var cleanedBody = System.Text.Json.JsonSerializer.Serialize(cleanedJson);
-
-                    // Reemplaza el body
-                    var bytes = System.Text.Encoding.UTF8.GetBytes(cleanedBody);
+                    var bytes = Encoding.UTF8.GetBytes(cleanedBody);
                     context.Request.Body = new MemoryStream(bytes);
                     context.Request.ContentLength = bytes.Length;
                 }
-                catch (System.Text.Json.JsonException ex)
+                catch (JsonException ex)
                 {
                     this.logger.LogError(ex, "Error parsing JSON en EncryptionMiddleware.");
                 }
             }
 
+            var originalBodyStream = context.Response.Body;
+            using var responseBody = new MemoryStream();
+            context.Response.Body = responseBody;
+
             await this.next(context);
+
+            await EncryptResponseBody(context.Response, originalBodyStream);
         }
         catch (Exception ex)
         {
@@ -132,6 +131,7 @@ public class EncryptionMiddleware
             await context.Response.WriteAsync("Internal Server Error");
         }
     }
+
 
     private bool IsExcludedPath(PathString path)
     {
@@ -158,7 +158,74 @@ public class EncryptionMiddleware
             case System.Text.Json.JsonValueKind.String:
                 return this.utils.LimpiaInyection(element.GetString() ?? string.Empty);
             default:
-                return element.GetRawText(); // Para valores numéricos, booleanos, null
+                return element.GetRawText();
         }
+    }
+    private async Task<Stream> DecryptRequestBody(HttpRequest request)
+    {
+        request.EnableBuffering();
+        string encryptedBody = await new StreamReader(request.Body).ReadToEndAsync();
+        request.Body.Position = 0;
+
+        if (string.IsNullOrEmpty(encryptedBody))
+            return request.Body;
+
+        string decryptedJson;
+        try
+        {
+            decryptedJson = encryptionService.Decrypt(encryptedBody);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Decryption failed");
+            request.HttpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
+            await request.HttpContext.Response.WriteAsync("Bad request: Decryption failed.");
+            return Stream.Null;
+        }
+
+        try { JsonDocument.Parse(decryptedJson); }
+        catch (JsonException je)
+        {
+            logger.LogError(je, "Invalid JSON after decryption");
+            request.HttpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
+            await request.HttpContext.Response.WriteAsync("Bad request: Invalid JSON.");
+            return Stream.Null;
+        }
+
+        byte[] bytes = Encoding.UTF8.GetBytes(decryptedJson);
+        var ms = new MemoryStream(bytes);
+
+        request.ContentType = "application/json";
+        request.Headers["Content-Type"] = "application/json";
+        request.ContentLength = bytes.Length;
+
+        return ms;
+    }
+
+
+
+    private async Task EncryptResponseBody(HttpResponse response, Stream originalBodyStream)
+    {
+        if (response.StatusCode == StatusCodes.Status204NoContent)
+        {
+            response.Body.Seek(0, SeekOrigin.Begin);
+            await response.Body.CopyToAsync(originalBodyStream);
+            return;
+        }
+        response.Body.Seek(0, SeekOrigin.Begin);
+        var plainText = await new StreamReader(response.Body).ReadToEndAsync();
+
+        var encryptedText = this.encryptionService.Encrypt(plainText);
+
+        var jsonResponse = new { data = encryptedText };
+
+        var jsonString = JsonSerializer.Serialize(jsonResponse);
+        var jsonBytes = Encoding.UTF8.GetBytes(jsonString);
+
+        response.ContentLength = jsonBytes.Length;
+
+        response.Body.Seek(0, SeekOrigin.Begin);
+        response.ContentType = "application/json";
+        await originalBodyStream.WriteAsync(jsonBytes, 0, jsonBytes.Length);
     }
 }

@@ -164,7 +164,13 @@ app.UseCookiePolicy();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseMiddleware<EncryptionMiddleware>();
+if (builder.Configuration["UseEncrypt"] == "true")
+{
+    var encryptionService = new EncryptionService(builder.Configuration["KeyCripto"]);
+
+
+    app.UseMiddleware<EncryptionMiddleware>(encryptionService);
+}
 
 if (app.Environment.IsDevelopment())
 {
