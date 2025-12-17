@@ -14,7 +14,7 @@ namespace app_dental_api.Controllers
     [Route("api/[controller]/[action]")]
     [Produces("application/json")]
     [Consumes("application/json")]
-    public class PacienteController : ControllerBase
+    public class PacienteController : BaseController
     {
         private readonly IAntiforgery antiforgery;
         private readonly IConfiguration _config;
@@ -155,7 +155,7 @@ namespace app_dental_api.Controllers
                     response.Add("Error", "Hubo un problema al validar paciente.");
                     return StatusCode(403, response);
                 }
-                var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var username = Username;
                 usuario = await Login.ObtenerPaciente(username!);
                 if (usuario.rut == null)
                 {
@@ -254,7 +254,7 @@ namespace app_dental_api.Controllers
                     return StatusCode(403, response);
                 }
                 ObtenerAgendamientoPorPacienteModel request = new();
-                var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var username = Username;
                 usuario = await Login.ObtenerPaciente(username!);
                 if (usuario.rut == null)
                 {
@@ -296,7 +296,7 @@ namespace app_dental_api.Controllers
                     return StatusCode(403, response);
                 }
                 ObtenerAgendamientoPorPacienteModel request = new();
-                var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var username = Username;
                 usuario = await Login.ObtenerPaciente(username!);
                 if (usuario.rut == null)
                 {
@@ -329,7 +329,7 @@ namespace app_dental_api.Controllers
             [FromBody] ObtenerImagenExamenConsultaModel request)
         {
             var response = new Dictionary<string, string>();
-            var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var username = Username;
             var perfil = User.FindFirst(ClaimTypes.Role)?.Value;
             LoginBo loginBo = new(_config);
             if (username == null)
@@ -376,7 +376,7 @@ namespace app_dental_api.Controllers
             try
             {
                 ObtenerAgendamientoPorPacienteModel request = new();
-                var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var username = Username;
                 usuario = await Login.ObtenerPaciente(username!);
                 if (usuario.rut == null)
                 {
@@ -411,7 +411,7 @@ namespace app_dental_api.Controllers
             try
             {
                 EliminarAgendamientoPacienteModel requestPaciente = new();
-                var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var username = Username;
                 usuario = await Login.ObtenerPaciente(username!);
                 if (usuario.rut == null)
                 {
@@ -453,7 +453,7 @@ namespace app_dental_api.Controllers
             try
             {
                 EliminarAgendamientoPacienteModel requestPaciente = new();
-                var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var username = Username;
                 usuario = await Login.ObtenerPaciente(username!);
                 if (usuario == null)
                 {

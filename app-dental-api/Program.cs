@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.IdentityModel.Tokens;
 using System.Globalization;
+using System.Security.Claims;
 using System.Text;
 using System.Text.Json.Serialization;
 using Utilidades;
@@ -83,7 +84,22 @@ builder.Services
                         ValidateIssuerSigningKey = true,
                         ValidIssuer = builder.Configuration["JwtIssuer"],
                         ValidAudience = builder.Configuration["JwtIssuer"],
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtKey"])),
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtKey"]!)),
+                    };
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnTokenValidated = context =>
+                        {
+                            var username = context.Principal?
+                                .FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                            if (string.IsNullOrWhiteSpace(username))
+                            {
+                                context.Fail("Token inválido: sin identificador");
+                            }
+
+                            return Task.CompletedTask;
+                        }
                     };
                 });
 
@@ -148,6 +164,8 @@ app.Use(async (context, next) =>
         await context.Response.WriteAsync("{\"error\": \"Forbidden\"}");
         return;
     }
+    if (context.Request.ContentLength > 5_000_000)
+        throw new Exception("Payload demasiado grande");
 
     await next();
 

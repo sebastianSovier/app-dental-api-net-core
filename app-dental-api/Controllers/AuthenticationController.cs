@@ -14,11 +14,12 @@ namespace app_dental_api.Controllers
     [Route("api/[controller]/[action]")]
     [Produces("application/json")]
     [Consumes("application/json")]
-    public class AuthenticationController : ControllerBase
+    public class AuthenticationController : BaseController
     {
         private readonly IAntiforgery antiforgery;
         private readonly IConfiguration _config;
         private readonly UtilidadesApiss utils = new UtilidadesApiss();
+
         /// <summary>
         /// Initializes a new instance of the <see cref="AuthenticationController"/> class.
         /// </summary>
@@ -219,7 +220,7 @@ namespace app_dental_api.Controllers
 
             try
             {
-                var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var username = Username;
 
                 requestLogin.rut = username;
                 usuario = await Login.ObtenerPaciente(requestLogin.rut);
@@ -328,7 +329,7 @@ namespace app_dental_api.Controllers
 
             try
             {
-                var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var username = Username;
 
                 request.rut = username;
                 usuario = await Login.ObtenerPaciente(request.rut);
@@ -374,7 +375,7 @@ namespace app_dental_api.Controllers
 
             try
             {
-                var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var username = Username;
                 request.rut = username;
                 usuario = await Login.ObtenerPaciente(request.rut);
                 if (usuario.nombres != null)
@@ -422,7 +423,7 @@ namespace app_dental_api.Controllers
             var response = new Dictionary<string, string>();
             ProfesionalModel usuario = new ProfesionalModel();
             ProfesionalModel administrador = new ProfesionalModel();
-            var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var username = Username;
             var perfil = User.FindFirst(ClaimTypes.Role)?.Value;
             try
             {
@@ -480,7 +481,7 @@ namespace app_dental_api.Controllers
         public async Task<IActionResult> GetXsrfToken([FromBody] EmptyRequest request)
         {
             var response = new Dictionary<string, string>();
-            var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var username = Username;
             if (username != null)
             {
                 var tokens = this.antiforgery.GetAndStoreTokens(this.HttpContext);
@@ -514,7 +515,7 @@ namespace app_dental_api.Controllers
             [FromBody] EmptyRequest request)
         {
             var response = new Dictionary<string, string>();
-            var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var username = Username;
             var perfil = User.FindFirst(ClaimTypes.Role)?.Value;
             LoginBo loginBo = new(_config);
             List<ProfesionalModel> profesionales = new List<ProfesionalModel>();
@@ -564,7 +565,7 @@ namespace app_dental_api.Controllers
             [FromBody] ObtenerPacienteRequest request)
         {
             var response = new Dictionary<string, string>();
-            var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var username = Username;
             var perfil = User.FindFirst(ClaimTypes.Role)?.Value;
             LoginBo loginBo = new(_config);
             ProfesionalModel profesional = new ProfesionalModel();
@@ -631,7 +632,7 @@ namespace app_dental_api.Controllers
             [FromBody] ModificarPerfilRequest request)
         {
             var response = new Dictionary<string, string>();
-            var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var username = Username;
             var perfil = User.FindFirst(ClaimTypes.Role)?.Value;
             LoginBo loginBo = new(_config);
             ProfesionalModel profesional = new ProfesionalModel();

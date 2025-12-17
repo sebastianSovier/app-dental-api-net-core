@@ -13,7 +13,7 @@ namespace app_dental_api.Controllers
     [Route("api/[controller]/[action]")]
     [Produces("application/json")]
     [Consumes("application/json")]
-    public class ConsultaMedicaController : ControllerBase
+    public class ConsultaMedicaController : BaseController
     {
         private readonly IAntiforgery antiforgery;
         private readonly IConfiguration _config;
@@ -44,7 +44,7 @@ namespace app_dental_api.Controllers
             [FromBody] HorasAgendadasRequestModel request)
         {
             var response = new Dictionary<string, string>();
-            var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var username = Username;
             var perfil = User.FindFirst(ClaimTypes.Role)?.Value;
             LoginBo loginBo = new(_config);
             if (username == null)
@@ -93,7 +93,7 @@ namespace app_dental_api.Controllers
             [FromBody] ObtenerTratamientoConsultaPacienteModel request)
         {
             var response = new Dictionary<string, string>();
-            var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var username = Username;
             var perfil = User.FindFirst(ClaimTypes.Role)?.Value;
             LoginBo loginBo = new(_config);
             if (username == null)

@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Modelo;
 using Negocio;
-using System.Security.Claims;
 using Utilidades;
 using static Modelo.AuthenticationModel;
 
@@ -14,7 +13,7 @@ namespace app_dental_api.Controllers
     [Route("api/[controller]/[action]")]
     [Produces("application/json")]
     [Consumes("application/json")]
-    public class UtilitarioController : ControllerBase
+    public class UtilitarioController : BaseController
     {
         private readonly IAntiforgery antiforgery;
         private readonly IConfiguration _config;
@@ -44,7 +43,7 @@ namespace app_dental_api.Controllers
             [FromBody] EmptyRequest request)
         {
             var response = new Dictionary<string, string>();
-            var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var username = Username;
             if (username == null)
             {
                 response.Add("Error", "Hubo un problema al validar paciente.");
@@ -80,7 +79,7 @@ namespace app_dental_api.Controllers
             [FromBody] EmptyRequest request)
         {
             var response = new Dictionary<string, string>();
-            var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var username = Username;
             if (username == null)
             {
                 response.Add("Error", "Hubo un problema al validar paciente.");

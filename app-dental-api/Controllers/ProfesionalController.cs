@@ -14,7 +14,7 @@ namespace app_dental_api.Controllers
     [Route("api/[controller]/[action]")]
     [Produces("application/json")]
     [Consumes("application/json")]
-    public class ProfesionalController : ControllerBase
+    public class ProfesionalController : BaseController
     {
         private readonly IAntiforgery antiforgery;
         private readonly IConfiguration _config;
@@ -44,7 +44,7 @@ namespace app_dental_api.Controllers
             [FromBody] EmptyRequest request)
         {
             var response = new Dictionary<string, string>();
-            var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var username = Username;
             if (username == null)
             {
                 response.Add("Error", "Hubo un problema al validar paciente.");
@@ -80,7 +80,7 @@ namespace app_dental_api.Controllers
             [FromBody] EmptyRequest request)
         {
             var response = new Dictionary<string, string>();
-            var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var username = Username;
             if (username == null)
             {
                 response.Add("Error", "Hubo un problema al validar profesional.");
@@ -146,7 +146,7 @@ namespace app_dental_api.Controllers
             [FromBody] HorasAgendadasRequestModel request)
         {
             var response = new Dictionary<string, string>();
-            var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var username = Username;
             var perfil = User.FindFirst(ClaimTypes.Role)?.Value;
             LoginBo loginBo = new(_config);
             if (username == null)
@@ -195,7 +195,7 @@ namespace app_dental_api.Controllers
             [FromBody] HorasAgendadasRequestModel request)
         {
             var response = new Dictionary<string, string>();
-            var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var username = Username;
             var perfil = User.FindFirst(ClaimTypes.Role)?.Value;
             LoginBo loginBo = new(_config);
             if (username == null)
@@ -244,7 +244,7 @@ namespace app_dental_api.Controllers
             [FromBody] HorasAgendadasRequestModel request)
         {
             var response = new Dictionary<string, string>();
-            var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var username = Username;
             var perfil = User.FindFirst(ClaimTypes.Role)?.Value;
             LoginBo loginBo = new(_config);
             if (username == null)
@@ -294,7 +294,7 @@ namespace app_dental_api.Controllers
             [FromBody] HorasAgendadasRequestModel request)
         {
             var response = new Dictionary<string, string>();
-            var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var username = Username;
             var perfil = User.FindFirst(ClaimTypes.Role)?.Value;
             LoginBo loginBo = new(_config);
             if (username == null)
@@ -345,7 +345,7 @@ namespace app_dental_api.Controllers
             try
             {
                 EliminarAgendamientoPacienteModel requestPaciente = new();
-                var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var username = Username;
                 usuario = await Login.ObtenerProfesional(username!);
                 if (usuario.rut == null)
                 {
@@ -384,7 +384,7 @@ namespace app_dental_api.Controllers
             [FromBody] ModificarAgendamientoProfesionalModel request)
         {
             var response = new Dictionary<string, string>();
-            var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var username = Username;
             var perfil = User.FindFirst(ClaimTypes.Role)?.Value;
             LoginBo loginBo = new(_config);
             if (username == null)
@@ -433,7 +433,7 @@ namespace app_dental_api.Controllers
             [FromBody] ObtenerImagenExamenConsultaModel request)
         {
             var response = new Dictionary<string, string>();
-            var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var username = Username;
             var perfil = User.FindFirst(ClaimTypes.Role)?.Value;
             LoginBo loginBo = new(_config);
             if (username == null)
@@ -479,7 +479,7 @@ namespace app_dental_api.Controllers
             [FromBody] GuardarConsultaMedicaModel request)
         {
             var response = new Dictionary<string, string>();
-            var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var username = Username;
             var perfil = User.FindFirst(ClaimTypes.Role)?.Value;
             LoginBo loginBo = new(_config);
             if (username == null)
@@ -533,7 +533,7 @@ namespace app_dental_api.Controllers
                 return BadRequest("No se recibieron archivos");
 
             var response = new Dictionary<string, string>();
-            var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var username = Username;
             var perfil = User.FindFirst(ClaimTypes.Role)?.Value;
             LoginBo loginBo = new(_config);
             if (username == null)
